@@ -1,0 +1,87 @@
+/* ChatList.css */
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.left-panel {
+    width: 30%; /* Allocates 30% of the space for the chat list */
+    background-color: #f5f5f5;
+    padding: 16px;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
+}
+
+.right-panel {
+    width: 70%; /* Allocates 70% of the space for the right-side content */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 16px;
+}
+
+.company-name {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+}
+
+.chat-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-user-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 16px;
+}
+
+.chat-user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-user-name {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.chat-message-button {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background-color: #25d366;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.chat-message-button:hover {
+    background-color: #20c354;
+}
+
+.chat-message-button svg {
+    width: 24px;
+    height: 24px;
+}
