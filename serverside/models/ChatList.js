@@ -7,7 +7,7 @@ const chatListSchema = new mongoose.Schema({
     background:{type:String},
     sender:{type:Object},
     receiver:{type:Object},
-    count:{type:Number}
+    lastmsg:{type:String}
 
 });
 

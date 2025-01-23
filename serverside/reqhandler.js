@@ -395,7 +395,7 @@ export async function createChatList(req, res) {
             background: null,
             sender: { username: sender.username, image: sender.image },
             receiver: { username: receiver.username, image: receiver.image },
-            count:0
+            lastmsg:null
         });
 
         return res.status(200).send({ msg: "Chat list created successfully", chatList });
@@ -407,39 +407,46 @@ export async function createChatList(req, res) {
 
 export async function setcount(req, res) {
     try {
-        const sender_id = req.user.UserID;
-        const { id: receiver_id } = req.params;
+        const sender_id = req.user.UserID;  
+        const { id: receiver_id } = req.params; 
 
-        const unseenMessagesCount = await ChatBox.countDocuments({
-            sender_id: receiver_id,
-            receiver_id: sender_id, 
-            seen: false,
-        });
-        console.log(unseenMessagesCount);
-        
+        const lastMessage = await ChatBox.findOne(
+            {
+                $or: [
+                    { sender_id: sender_id, receiver_id: receiver_id },
+                    { sender_id: receiver_id, receiver_id: sender_id },
+                ]
+            },
+            {}, 
+            { sort: { time: -1 } } 
+        );
+
+        if (!lastMessage) {
+            return res.status(404).send({ msg: "No messages found between these users" });
+        }
+
         const result = await chatListSchema.findOneAndUpdate(
             {
                 $or: [
                     { sender_id: sender_id, receiver_id: receiver_id },
-                    { sender_id: receiver_id, receiver_id: sender_id }  
+                    { sender_id: receiver_id, receiver_id: sender_id }
                 ]
             },
-            { $set: { count: unseenMessagesCount } }
+            { $set: { lastmsg: lastMessage.message } }, 
+            { new: true } 
         );
-
 
         if (!result) {
             return res.status(404).send({ msg: "Chat list not found" });
         }
 
-        return res.status(200).send({
-            msg: "Unseen message count updated successfully",
-            count: unseenMessagesCount,
-        });
+        return res.status(200).send({msg: "Last message updated successfully",});
     } catch (error) {
-        return res.status(500).send({ msg: "Failed to update unseen message count", error });
+        return res.status(500).send({ msg: "Failed to update last message", error: error.message });
     }
 }
+
+
 
 
 
@@ -454,14 +461,17 @@ export async function displayChatList(req, res) {
                     username: chat.receiver.username,
                     image: chat.receiver.image,
                     chatId: chat._id,
-                    otherUserId: chat.receiver_id 
+                    otherUserId: chat.receiver_id ,
+                    lastmsg:chat.lastmsg
                 };
             } else {
                 return {
                     username: chat.sender.username,
                     image: chat.sender.image,
                     chatId: chat._id,
-                    otherUserId: chat.sender_id 
+                    otherUserId: chat.sender_id ,
+                    lastmsg:chat.lastmsg
+
                 };
             }
         });

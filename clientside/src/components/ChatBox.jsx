@@ -10,29 +10,13 @@ const ChatBox = ({ chatId }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [user, setUser] = useState({});
-    const [my_id, setMyId] = useState(null); // Initialize my_id as null initially
+    const [my_id, setMyId] = useState(null);
 
     useEffect(() => {
         fetchMessages();
         fetchUserDetails();
         markMessagesAsSeen();
-        initializeChatList();
     }, []);
-
-    const initializeChatList = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:3000/api/createchatlist/${chatId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error) {
-            if (error.response && error.response.status === 400) {
-                console.log("Chat list already exists");
-            } else {
-                console.error("Error initializing chat list:", error);
-            }
-        }
-    };
 
     const fetchMessages = async () => {
         try {
@@ -49,7 +33,7 @@ const ChatBox = ({ chatId }) => {
         const token = localStorage.getItem("token");
         if (!token) {
             console.error("No token found");
-            return; 
+            return;
         }
 
         try {
@@ -59,7 +43,7 @@ const ChatBox = ({ chatId }) => {
 
             if (response.status === 200) {
                 setUser(response.data.user);
-                setMyId(response.data.my_id); 
+                setMyId(response.data.my_id);
             } else {
                 console.error("Failed to fetch user details", response.status);
             }
@@ -69,24 +53,49 @@ const ChatBox = ({ chatId }) => {
     };
 
     const sendMessage = async (messageContent) => {
-        if (messageContent.trim() === "" || my_id === null) return; 
+        if (messageContent.trim() === "" || my_id === null) return;
+
         const message = {
-            sender_id: my_id, 
+            sender_id: my_id,
             message: messageContent,
             time: new Date().toISOString(),
         };
 
         try {
+            // Send the message
             await axios.post(
                 `http://localhost:3000/api/sendmsg/${chatId}`,
                 { message: messageContent },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
 
+            // Update the unseen message count for the receiver
+            await updateMessageCount(user._id);
+
+            // Create the chat list only if it's the first message sent
+            if (messages.length === 0) {
+                await initializeChatList(); // Create chat list when the first message is sent
+            }
+
             setMessages((prevMessages) => [...prevMessages, message]);
             setNewMessage("");
         } catch (error) {
-            console.error("Failed to send message");
+            console.error("Failed to send message or update count:", error);
+        }
+    };
+
+    const initializeChatList = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.post(`http://localhost:3000/api/createchatlist/${chatId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+        } catch (error) {
+            if (error.response && error.response.status === 400) {
+                console.log("Chat list already exists");
+            } else {
+                console.error("Error initializing chat list:", error);
+            }
         }
     };
 
@@ -97,6 +106,18 @@ const ChatBox = ({ chatId }) => {
             });
         } catch (error) {
             console.error("Error marking messages as seen:", error);
+        }
+    };
+
+    const updateMessageCount = async (id) => {
+        try {
+            await axios.put(
+                `http://localhost:3000/api/setcount/${chatId}`,
+                { chatid: chatId }, // Body now correctly sends receiverId
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+        } catch (error) {
+            console.error("Error updating unseen message count:", error);
         }
     };
 

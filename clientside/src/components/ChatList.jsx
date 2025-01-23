@@ -59,7 +59,9 @@ const ChatList = () => {
                                 />
                                 <div className="chat-user-details">
                                     <span className="chat-user-name">{chat.username}</span>
+                                    <span>{chat.lastmsg}</span>
                                 </div>
+                                
                             </li>
                         ))
                     )}
