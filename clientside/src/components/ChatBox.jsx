@@ -90,33 +90,61 @@ const ChatBox = ({ chatId }) => {
         }
     };
 
-    const sendMessage = async (messageContent) => {
-        if (messageContent.trim() === "" || my_id === null) return;
-
-        const message = {
-            sender_id: my_id,
-            message: messageContent,
-            time: new Date().toISOString(),
-            seen: false,
-        };
-
+    
+    const initializeChatList = async () => {
         try {
-            await axios.post(
-                `http://localhost:3000/api/sendmsg/${fetchId}`,
-                { message: messageContent },
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-            );
-
-            setMessages((prevMessages) => [...prevMessages, message]);
-            setNewMessage("");
-            scrollToBottom();
-
-            socket.current.emit("chat message", message);
+            const token = localStorage.getItem("token");
+            await axios.post(`http://localhost:3000/api/createchatlist/${chatId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
         } catch (error) {
-            setError("Failed to send message. Please try again.");
-            console.error("Failed to send message:", error);
+            if (error.response && error.response.status === 400) {
+                console.log("Chat list already exists");
+            } else {
+                console.error("Error initializing chat list:", error);
+            }
         }
     };
+
+   const sendMessage = async (messageContent) => {
+    if (messageContent.trim() === "" || my_id === null) return;
+
+    const message = {
+        sender_id: my_id,
+        message: messageContent,
+        time: new Date().toISOString(),
+        seen: false,
+    };
+
+    try {
+        // Initialize the chat list when sending the first message
+        if (messages.length === 0) {
+            await initializeChatList(); // Initialize chat list
+        }
+
+        await axios.post(
+            `http://localhost:3000/api/sendmsg/${fetchId}`,
+            { message: messageContent },
+            { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+
+        setMessages((prevMessages) => [...prevMessages, message]);
+        setNewMessage("");
+        scrollToBottom();
+
+        socket.current.emit("chat message", message);
+    } catch (error) {
+        setError("Failed to send message. Please try again.");
+        console.error("Failed to send message:", error);
+    }
+};
+
+const handleSend = () => {
+    sendMessage(newMessage);
+    updatelastmessage();
+    scrollToBottom();
+};
+
     const updatelastmessage = async (id) => {
         try {
             await axios.put(
@@ -129,11 +157,6 @@ const ChatBox = ({ chatId }) => {
         }
     };
 
-    const handleSend = () => {
-        sendMessage(newMessage);
-        updatelastmessage()
-        scrollToBottom();
-    };
 
     const handleChange = (e) => {
         setNewMessage(e.target.value);
