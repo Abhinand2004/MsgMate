@@ -1,6 +1,4 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
 import userSchema from "./models/User.js";
 import bcrypt from 'bcrypt';
 import pkg from 'jsonwebtoken';
@@ -8,30 +6,31 @@ const { sign } = pkg;
 import nodemailer from 'nodemailer'; 
 import ChatBox from "./models/ChatBox.js";
 import chatListSchema from './models/ChatList.js';  
-import { waitForDebugger } from 'inspector';
 const app = express();
-const server = createServer(app);
-const io = new Server(server);
-io.on('connection', (socket) => {
-    console.log('A user connected');
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected');
-    });
-
-    socket.on('message', (data) => {
-        // Handle incoming message data
-        console.log('Message received: ', data);
-    });
-});
-
-// Export server if needed for starting the application
-export default server;
 
 
 
+export async function poll(req, res) {
+    const { id } = req.params;
+    const lastMessageId = req.query.lastMessageId;
+
+    console.log(`Polling for new messages in chat: ${id} with lastMessageId: ${lastMessageId}`); // Debugging log
+
+    try {
+        const messages = await getNewMessages(id, lastMessageId);
+        console.log(`Sending back new messages: ${messages.length}`); // Debugging log
+        res.send(messages);
+    } catch (error) {
+        console.error("Error polling messages:", error);
+        res.status(500).send("Error polling messages");
+    }
+};
+
+
+
+ 
 export async function register(req, res) {
-    console.log(req.body);
+    // console.log(req.body);
     const { username, phone, pwd, cpwd,image,email} = req.body
     const user = await userSchema.findOne({ email })
     if (!user) {
@@ -64,7 +63,7 @@ const transporter = nodemailer.createTransport({
 
 export async function verifyEmail(req, res) {
     const { email } = req.body;
-    console.log(email);
+    // console.log(email);
     
     if (!email) {
         return res.status(500).send({ msg: "fields are empty" });
@@ -128,7 +127,7 @@ export async function login(req, res) {
 
 export async function verifyforpasschange(req, res) {
     const { email } = req.body;
-    console.log(email);
+    // console.log(email);
     
     if (!email) {
         return res.status(500).send({ msg: "Fields are empty" });
@@ -263,23 +262,18 @@ export async function displaymessage(req, res) {
 
 export async function showuser(req, res) {
     const { id } = req.params;
-    // Log the UserID from the JWT token for debugging purposes
-    console.log(req.user.UserID);
+    // console.log(req.user.UserID);
 
     try {
-        // Fetch the user from the database
         const user = await userSchema.findById(id);
 
-        // If user not found, send a 404 response
         if (!user) {
             return res.status(404).send({ message: 'User not found' });
         }
 
-        // Send the user data along with 'my_id' (user's ID from the token) separately
         res.status(200).send({ user, my_id: req.user.UserID });
 
     } catch (error) {
-        // Handle any server errors
         console.error(error);
         res.status(500).send({ message: 'Server error' });
     }
@@ -287,7 +281,7 @@ export async function showuser(req, res) {
 
 
 export async function navdata (req, res){
-    console.log(req.user.UserID);
+    // console.log(req.user.UserID);
     
     const data = await userSchema.findById(req.user.UserID);
 
@@ -342,8 +336,8 @@ export async function editprofile(req, res) {
 
 export async function seemsg(req, res) {
     try {
-        const sender_id = req.user.UserID; // The user who is viewing the messages
-        const { id: receiver_id } = req.params; // The other user in the chat
+        const sender_id = req.user.UserID; 
+        const { id: receiver_id } = req.params; 
 
         const result = await ChatBox.updateMany(  { sender_id: receiver_id, receiver_id: sender_id, seen: { $ne: true } },{ $set: { seen: true } } );
 
@@ -364,12 +358,10 @@ export async function createChatList(req, res) {
         const sender_id = req.user.UserID;
         const { id: receiver_id } = req.params;
 
-        // Ensure sender and receiver IDs are not the same
         if (sender_id === receiver_id) {
             return res.status(400).send({ msg: "Sender and receiver cannot be the same user." });
         }
 
-        // Check if chatList already exists
         const existingChatList = await chatListSchema.findOne({
             $or: [
                 { sender_id: sender_id, receiver_id: receiver_id },
@@ -388,14 +380,14 @@ export async function createChatList(req, res) {
             return res.status(404).send({ msg: "Sender or receiver not found." });
         }
 
-        // Create chatList
         const chatList = await chatListSchema.create({
             sender_id,
             receiver_id,
             background: null,
             sender: { username: sender.username, image: sender.image },
             receiver: { username: receiver.username, image: receiver.image },
-            lastmsg:null
+            lastmsg:null,
+            time:null
         });
 
         return res.status(200).send({ msg: "Chat list created successfully", chatList });
@@ -405,7 +397,7 @@ export async function createChatList(req, res) {
 }
 
 
-export async function setcount(req, res) {
+export async function setlastmsg(req, res) {
     try {
         const sender_id = req.user.UserID;  
         const { id: receiver_id } = req.params; 
@@ -432,7 +424,7 @@ export async function setcount(req, res) {
                     { sender_id: receiver_id, receiver_id: sender_id }
                 ]
             },
-            { $set: { lastmsg: lastMessage.message } }, 
+            { $set: { lastmsg: lastMessage.message ,time:lastMessage.time} }, 
             { new: true } 
         );
 
@@ -462,7 +454,8 @@ export async function displayChatList(req, res) {
                     image: chat.receiver.image,
                     chatId: chat._id,
                     otherUserId: chat.receiver_id ,
-                    lastmsg:chat.lastmsg
+                    lastmsg:chat.lastmsg,
+                    time:chat.time
                 };
             } else {
                 return {
@@ -470,7 +463,8 @@ export async function displayChatList(req, res) {
                     image: chat.sender.image,
                     chatId: chat._id,
                     otherUserId: chat.sender_id ,
-                    lastmsg:chat.lastmsg
+                    lastmsg:chat.lastmsg,
+                    time:chat.time
 
                 };
             }

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
+import { FaPaperPlane, FaEllipsisV } from "react-icons/fa";
+import io from "socket.io-client";
 import "./ChatBox.css";
-import { FaPaperPlane } from "react-icons/fa";
-import { FaEllipsisV } from "react-icons/fa";
 
 const ChatBox = ({ chatId }) => {
     const { id } = useParams();
@@ -11,20 +11,57 @@ const ChatBox = ({ chatId }) => {
     const [newMessage, setNewMessage] = useState("");
     const [user, setUser] = useState({});
     const [my_id, setMyId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const messagesEndRef = useRef(null);
+    const socket = useRef(null);
+
+    const fetchId = id || chatId;
 
     useEffect(() => {
+        socket.current = io("http://localhost:3000");
+
+        socket.current.on("chat message", (msg) => {
+            if (msg.sender_id !== my_id) {
+                setMessages((prevMessages) => [...prevMessages, msg]);
+            }
+            scrollToBottom();
+        });
+
         fetchMessages();
         fetchUserDetails();
         markMessagesAsSeen();
-    }, []);
+
+        return () => {
+            socket.current.disconnect();
+        };
+    }, [my_id]);
+
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            scrollToBottom();
+        }
+    }, [messages]);
+
+    // Scroll to the bottom when the component mounts
+    useEffect(() => {
+        scrollToBottom();
+    }, []); 
 
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/displaymsg/${chatId}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
+            const response = await axios.get(
+                `http://localhost:3000/api/displaymsg/${fetchId}`,
+                {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                }
+            );
             setMessages(response.data.messages);
+            setLoading(false);
+            scrollToBottom(); // Ensure scroll to bottom after messages are fetched
         } catch (error) {
+            setError("Error fetching messages. Please try again.");
+            setLoading(false);
             console.error("Error fetching messages:", error);
         }
     };
@@ -37,7 +74,7 @@ const ChatBox = ({ chatId }) => {
         }
 
         try {
-            const response = await axios.get(`http://localhost:3000/api/user/${chatId}`, {
+            const response = await axios.get(`http://localhost:3000/api/user/${fetchId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -48,6 +85,7 @@ const ChatBox = ({ chatId }) => {
                 console.error("Failed to fetch user details", response.status);
             }
         } catch (error) {
+            setError("Error fetching user details. Please try again.");
             console.error("Error fetching user details:", error);
         }
     };
@@ -59,60 +97,30 @@ const ChatBox = ({ chatId }) => {
             sender_id: my_id,
             message: messageContent,
             time: new Date().toISOString(),
+            seen: false,
         };
 
         try {
-            // Send the message
             await axios.post(
-                `http://localhost:3000/api/sendmsg/${chatId}`,
+                `http://localhost:3000/api/sendmsg/${fetchId}`,
                 { message: messageContent },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
 
-            // Update the unseen message count for the receiver
-            await updateMessageCount(user._id);
-
-            // Create the chat list only if it's the first message sent
-            if (messages.length === 0) {
-                await initializeChatList(); // Create chat list when the first message is sent
-            }
-
             setMessages((prevMessages) => [...prevMessages, message]);
             setNewMessage("");
+            scrollToBottom();
+
+            socket.current.emit("chat message", message);
         } catch (error) {
-            console.error("Failed to send message or update count:", error);
+            setError("Failed to send message. Please try again.");
+            console.error("Failed to send message:", error);
         }
     };
-
-    const initializeChatList = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:3000/api/createchatlist/${chatId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error) {
-            if (error.response && error.response.status === 400) {
-                console.log("Chat list already exists");
-            } else {
-                console.error("Error initializing chat list:", error);
-            }
-        }
-    };
-
-    const markMessagesAsSeen = async () => {
-        try {
-            await axios.put(`http://localhost:3000/api/setseen/${chatId}`, {}, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
-        } catch (error) {
-            console.error("Error marking messages as seen:", error);
-        }
-    };
-
-    const updateMessageCount = async (id) => {
+    const updatelastmessage = async (id) => {
         try {
             await axios.put(
-                `http://localhost:3000/api/setcount/${chatId}`,
+                `http://localhost:3000/api/setlastmsg/${fetchId}`,
                 { chatid: chatId }, // Body now correctly sends receiverId
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
@@ -123,10 +131,41 @@ const ChatBox = ({ chatId }) => {
 
     const handleSend = () => {
         sendMessage(newMessage);
+        updatelastmessage()
+        scrollToBottom();
     };
 
     const handleChange = (e) => {
         setNewMessage(e.target.value);
+    };
+
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 50); 
+    };
+
+    const markMessagesAsSeen = async () => {
+        try {
+            await axios.put(
+                `http://localhost:3000/api/setseen/${fetchId}`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                }
+            );
+        } catch (error) {
+            setError("Error marking messages as seen.");
+            console.error("Error marking messages as seen:", error);
+        }
+    };
+
+    const formatTime = (timestamp) => {
+        const messageTime = new Date(timestamp);
+        const hours = messageTime.getHours();
+        const minutes = messageTime.getMinutes();
+        const isAM = hours < 12;
+        return `${hours % 12 || 12}:${minutes < 10 ? "0" : ""}${minutes} ${isAM ? "AM" : "PM"}`;
     };
 
     return (
@@ -142,7 +181,9 @@ const ChatBox = ({ chatId }) => {
             </Link>
 
             <div className="messages-list">
-                {messages.length === 0 ? (
+                {loading ? (
+                    <p>Loading...</p>
+                ) : messages.length === 0 ? (
                     <p>No messages yet</p>
                 ) : (
                     messages.map((msg, index) => (
@@ -151,10 +192,26 @@ const ChatBox = ({ chatId }) => {
                             className={`message ${msg.sender_id === my_id ? "sent" : "received"}`}
                         >
                             <p>{msg.message}</p>
-                            <small>{new Date(msg.time).toLocaleString()}</small>
+
+                            <div className="message-footer">
+                                <small>{formatTime(msg.time)}</small>
+
+                                {msg.sender_id === my_id && (
+                                    <div className="tick-marks">
+                                        <span className="tick">
+                                            {msg.seen ? (
+                                                <span className="seen-tick">✔✔</span> 
+                                            ) : (
+                                                <span className="sent-tick">✔</span> 
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))
                 )}
+                <div ref={messagesEndRef} />
             </div>
 
             <div className="message-box">

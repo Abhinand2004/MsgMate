@@ -30,7 +30,6 @@ const Receiver = () => {
         <div className="profile-container">
             <div className="left-panel">
                 <div className="profile-card">
-                    <Navbar />
                     <div className="profile-image">
                         <img
                             src={receiverData.image || "https://via.placeholder.com/150"}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios'; 
-import './Register.css'; // Assuming the CSS file is in the same directory
+import './Register.scss'; // Assuming the CSS file is in the same directory
 
 const RegisterPage = () => {
     const [image, setImage] = useState(null);

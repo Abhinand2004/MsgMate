@@ -51,21 +51,18 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        {/* Logo */}
         <div className="navbar-logo">
           <img src={logo} alt="Logo" className="logo-image" />
         </div>
 
-        {/* Search Field */}
         <div className="navbar-search">
           <input type="text" className="search-input" placeholder="Search..." />
         </div>
 
-        {/* Profile Section */}
         <div className="navbar-profile">
           <img
-            src={profileImage || "/default-profile.jpg"} // Fallback to a default image if profile image is not available
-            alt={username || "Profile"} // Fallback for alt text
+            src={profileImage || "/default-profile.jpg"} 
+            alt={username || "Profile"} 
             className="profile-image"
             onClick={toggleDropdown}
           />

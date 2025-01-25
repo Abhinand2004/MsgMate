@@ -119,4 +119,15 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
     }
+
+    @media (max-width: 760px) {
+        .left-panel {
+            width: 100%; /* Make left panel full width */
+            padding: 10px;
+        }
+
+        .right-panel {
+            display: none; /* Hide right panel on small screens */
+        }
+    }
 }

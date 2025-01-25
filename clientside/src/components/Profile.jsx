@@ -77,7 +77,6 @@ const Profile = () => {
         <div className="profile-container">
             <div className="left-panel">
                 <div className="profile-card">
-                    <Navbar />
                     <div className="profile-image">
                         <img
                             src={userData.image || "https://via.placeholder.com/150"}

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import "./PassChange.scss"
+import { useNavigate } from 'react-router-dom';
 const PassChange = () => {
     const [email, setEmail] = useState('');
     const [pwd, setPwd] = useState('');
     const [cpwd, setCpwd] = useState('');
 
+    const Navigate=useNavigate()
     useEffect(() => {
         // Retrieve email from localStorage
         const storedEmail = localStorage.getItem('email');
@@ -17,12 +19,18 @@ const PassChange = () => {
     const handlePassChange = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:3000/api/passchange', {
+         const res=   await axios.post('http://localhost:3000/api/passchange', {
                 email,
                 pwd,
                 cpwd
             });
             // Handle success (you can redirect or show a success message)
+            if (res.status==200) {
+              Navigate("/login")  
+            }else{
+                alert("something went wrong")
+            }
+
         } catch (error) {
             // Handle error (you can show an error message)
         }
