@@ -18,6 +18,16 @@ const ChatBox = ({ chatId }) => {
 
     const fetchId = id || chatId;
 
+    // useEffect=(()=>{scrollToBottom()},[fetchId])
+
+
+
+    useEffect(() => {
+      
+        scrollToBottom()
+      
+        
+    }, [socket]);
     useEffect(() => {
         socket.current = io("http://localhost:3000");
 
@@ -25,7 +35,6 @@ const ChatBox = ({ chatId }) => {
             if (msg.sender_id !== my_id) {
                 setMessages((prevMessages) => [...prevMessages, msg]);
             }
-            scrollToBottom();
         });
 
         fetchMessages();
@@ -35,18 +44,11 @@ const ChatBox = ({ chatId }) => {
         return () => {
             socket.current.disconnect();
         };
-    }, [my_id]);
-
-    useEffect(() => {
-        if (messagesEndRef.current) {
-            scrollToBottom();
-        }
+        scrollToBottom()
     }, [messages]);
 
-    // Scroll to the bottom when the component mounts
-    useEffect(() => {
-        scrollToBottom();
-    }, []); 
+   
+   
 
     const fetchMessages = async () => {
         try {
@@ -56,9 +58,14 @@ const ChatBox = ({ chatId }) => {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
             );
+           if (response.status==200) {
             setMessages(response.data.messages);
             setLoading(false);
-            scrollToBottom(); // Ensure scroll to bottom after messages are fetched
+          
+           }else{
+            alert("faild to fetch")
+           }
+           
         } catch (error) {
             setError("Error fetching messages. Please try again.");
             setLoading(false);
@@ -223,9 +230,9 @@ const handleSend = () => {
                                     <div className="tick-marks">
                                         <span className="tick">
                                             {msg.seen ? (
-                                                <span className="seen-tick">✔✔</span> 
+                                                <span className="seen-tick">✔</span> 
                                             ) : (
-                                                <span className="sent-tick">✔</span> 
+                                                <span className="sent-tick">✔✔</span> 
                                             )}
                                         </span>
                                     </div>
