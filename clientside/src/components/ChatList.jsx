@@ -95,8 +95,9 @@ const ChatList = ({ serch }) => {
                 </li>
               ))
           )}
+           
         </ul>
-        <button className="chat-message-button" onClick={contacts}>
+        <button className="chat-message-button1" onClick={contacts}>
           <FaRegComments />
         </button>
       </div>

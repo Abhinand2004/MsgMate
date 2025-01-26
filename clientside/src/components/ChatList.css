@@ -11,11 +11,31 @@
     background-color: #f9f9f9;
     border-right: 1px solid #e0e0e0;
     overflow-y: auto;
+    scrollbar-width: none;
     flex-direction: column;
     position: relative;
     max-height: 100vh;
     padding: 10px;
   }
+  
+  .chat-message-button1 {
+    bottom: 16px; 
+    position: absolute; 
+    right: 16px;
+    background-color: #25d366;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
   
   .right-panel {
     width: 70%;
@@ -52,6 +72,7 @@
     list-style-type: none;
     padding: 0;
     margin: 0;
+    position: relative;
   }
   
   .chat-item {
@@ -101,7 +122,7 @@
   
   .chat-time {
     position: absolute;
-    top: 90%;
+    top: 100%;
     right: 8px;
     transform: translateY(-50%);
     font-size: 12px;
@@ -120,26 +141,10 @@
     font-size: 12px;
     position: absolute;
     right: 8px;
+    
   }
   
-  .chat-message-button {
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    background-color: #25d366;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
+
   .chat-message-button:hover {
     background-color: #20c354;
   }

@@ -108,6 +108,7 @@ const ChatBox = ({ chatId }) => {
                 }
             );
             if (response.status === 200) {
+               
                 console.log("Chat list initialized successfully.");
             }
         } catch (error) {

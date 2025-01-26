@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios'; 
 import './Register.css'; // Assuming the CSS file is in the same directory
+import { Navigate, useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
+    const   Navigate=useNavigate()
     const [image, setImage] = useState(null);
     const [formData, setFormData] = useState({
         username: '',
@@ -45,10 +47,20 @@ const RegisterPage = () => {
 
         try {
             const response = await axios.post('http://localhost:3000/api/register', formData);
+            if (response.status==200) {
+                Navigate("/login")
+            }else{
+                alert("something went wrong")
+                
+            }
         } catch (error) {
+            alert("something went wrong try again")
             console.error('There was an error registering the user!', error);
         }
     };
+    const loginnavigate=()=>{
+        Navigate("/login")
+    }
 
     return (
         <div className="register-container">
@@ -125,7 +137,7 @@ const RegisterPage = () => {
 
                     <div className="button-group">
                         <button type="submit" className="register-button">Register</button>
-                        <button type="button" className="login-button">Login</button>
+                        <button type="button" className="login-button" onClick={loginnavigate}>Login</button>
                     </div>
                 </form>
             </div>

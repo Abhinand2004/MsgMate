@@ -29,9 +29,12 @@ const Contact = ({ serch }) => {
 
   // Filter contacts based on the search term (serch)
   const filteredContacts = contacts.filter((contact) => {
+    const username = contact.username || ""; // Default to empty string if undefined or null
+    const about = contact.about || ""; // Default to empty string if undefined or null
+
     return (
-      contact.username.toLowerCase().includes(serch.toLowerCase()) ||
-      contact.about.toLowerCase().includes(serch.toLowerCase())
+      username.toLowerCase().includes(serch.toLowerCase()) ||
+      about.toLowerCase().includes(serch.toLowerCase())
     );
   });
 
@@ -75,9 +78,7 @@ const Contact = ({ serch }) => {
             <p>No contacts found</p>
           )}
         </div>
-        <button className="chat-message-button" onClick={() => navigate("/contact")}>
-          <FaRegComments />
-        </button>
+        
       </div>
 
       {/* Conditionally display right panel */}

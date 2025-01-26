@@ -27,8 +27,10 @@ export async function register(req, res) {
         }).catch((error) => {
             console.log(error);
         })
+      
+        
     } else {
-        res.status(200).send({ msg: "email already used " })
+        res.status(500).send({ msg: "email already used " })
     }
 }
 
@@ -46,10 +48,9 @@ const transporter = nodemailer.createTransport({
 
 export async function verifyEmail(req, res) {
     const { email } = req.body;
-    // console.log(email);
-    
+
     if (!email) {
-        return res.status(500).send({ msg: "fields are empty" });
+        return res.status(500).send({ msg: "Fields are empty" });
     }
 
     try {
@@ -57,29 +58,30 @@ export async function verifyEmail(req, res) {
 
         if (!user) {
             const info = await transporter.sendMail({
-                from: 'abhinandc293@gmail.com', 
+                from: 'no-reply@msgmate.com', 
                 to: email, 
-                subject: "Verify Your Email", 
-                text: "VERIFY! your email", 
+                subject: "Welcome to Msg-Mate! Confirm Your Account", 
+                text: "Please confirm your account", 
                 html: `
-                    <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 40px;">
+                    <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 40px;">
                         <div style="background-color: #fff; border-radius: 8px; padding: 30px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);">
-                            <h1 style="color: #1d55cd;">Electro-Galaxy Email Verification</h1>
-                            <p style="font-size: 16px; color: #555;">Hello ,</p>
-                            <p style="font-size: 16px; color: #555;">Please verify your email address by clicking the button below:</p>
-                            <a href="http://localhost:5173/changepass" 
-                               style="display: inline-block; padding: 12px 25px; color: #fff; background-color: #1d55cd; text-decoration: none; font-size: 16px; border-radius: 5px; margin-top: 20px;">
-                               Verify Email
+                            <h1 style="color: #4caf50;">Welcome to Msg-Mate!</h1>
+                            <p style="font-size: 16px; color: #333;">Hello,</p>
+                            <p style="font-size: 16px; color: #555;">Thank you for signing up with Msg-Mate. Please confirm your email address to activate your account:</p>
+                            <a href="http://localhost:5173/register" 
+                               style="display: inline-block; padding: 12px 25px; color: #fff; background-color: #4caf50; text-decoration: none; font-size: 16px; border-radius: 5px; margin-top: 20px;">
+                               Confirm Account
                             </a>
-                            <p style="font-size: 14px; color: #888; margin-top: 20px;">If you did not request this, please ignore this email.</p>
+                            <p style="font-size: 14px; color: #888; margin-top: 20px;">If you did not create this account, please ignore this email.</p>
+                            <p style="font-size: 14px; color: #888; margin-top: 10px;">Need help? Contact us at support@msgmate.com.</p>
                         </div>
                     </div>
                 `,
             });
             console.log("Message sent: %s", info.messageId);
-            res.status(200).send({ msg: "Verification email sent" });
+            res.status(200).send({ msg: "Confirmation email sent" });
         } else {
-            return res.status(500).send({ msg: "Email doesn't exist" });
+            return res.status(500).send({ msg: "Email already exists" });
         }
     } catch (error) {
         console.error("Error sending email:", error);
