@@ -1,4 +1,8 @@
 /* Navbar Container */
+*{
+  margin: 0;
+  padding: 0;
+}
 .navbar {
   background-color: #075e54; /* WhatsApp-like green color */
   color: white;
@@ -76,3 +80,10 @@
 .dropdown-item:hover {
   background-color: #f1f1f1;
 }
+
+
+@media (max-width: 760px) {
+  .navbar-search .search-input{
+    width: 170px;
+  }
+  }

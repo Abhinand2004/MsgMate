@@ -15,6 +15,7 @@ const ChatBox = ({ chatId }) => {
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
     const socket = useRef(null);
+// console.log(user);
 
     const fetchId = id || chatId;
 
@@ -38,7 +39,7 @@ const ChatBox = ({ chatId }) => {
         };
     }, [messages]);
 
-    
+
     useEffect(() => {
         scrollToBottom();
     }, [socket]);
@@ -53,8 +54,8 @@ const ChatBox = ({ chatId }) => {
                 }
             );
             if (response.status === 200) {
-                
                 setMessages(response.data.messages);
+                updatecount()
                 setLoading(false);
                
             } else {
@@ -152,21 +153,48 @@ const ChatBox = ({ chatId }) => {
 
     const handleSend = () => {
         sendMessage(newMessage);
+        updatecount()
         updatelastmessage();
+   
         scrollToBottom();
     };
 
     const updatelastmessage = async () => {
         try {
-            await axios.put(
+       const res=     await axios.put(
                 `http://localhost:3000/api/setlastmsg/${fetchId}`,
-                { chatid: chatId },
+                { },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
+            if (res.status==200) {
+                console.log("sucess");
+                
+            }else{
+                error
+            }
         } catch (error) {
             console.error("Error updating unseen message count:", error);
         }
     };
+    
+    const updatecount = async () => {
+        try {
+       const res=     await axios.put(
+                `http://localhost:3000/api/setcount/${fetchId}`,
+                { },
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+            if (res.status==200) {
+                console.log("sucess");
+                
+            }else{
+                error
+            }
+        } catch (error) {
+            console.error("Error updating unseen message count:", error);
+        }
+    };
+    
 
     const handleChange = (e) => {
         setNewMessage(e.target.value);

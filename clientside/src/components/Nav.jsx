@@ -4,7 +4,7 @@ import axios from "axios";
 import "./Nav.css";
 import logo from "../assets/logo.png";
 
-const Navbar = () => {
+const Navbar = ({ setSearch }) => {
   const navigate = useNavigate();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [profileImage, setProfileImage] = useState(""); // State to store the profile image
@@ -33,20 +33,30 @@ const Navbar = () => {
 
       if (response.status === 200) {
         console.log(response.data);
-        
-        setProfileImage(response.data.data.image); 
+
+        setProfileImage(response.data.data.image);
         setUsername(response.data.data.username);
       } else {
+        navigate("/login")
         console.error("Failed to fetch user data");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
+      navigate("/login")
+
     }
   };
 
   useEffect(() => {
+
     fetchProfile();
+      
+  
   }, []);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value); // Update the search input value
+  };
 
   return (
     <nav className="navbar">
@@ -56,19 +66,26 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-search">
-          <input type="text" className="search-input" placeholder="Search..." />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search..."
+            onChange={handleSearchChange} // Handle input changes to update search value
+          />
         </div>
 
         <div className="navbar-profile">
           <img
-            src={profileImage || "/default-profile.jpg"} 
-            alt={username || "Profile"} 
+            src={profileImage || "/default-profile.jpg"} // Default profile image
+            alt={username || "Profile"} // Default username if not available
             className="profile-image"
-            onClick={toggleDropdown}
+            onClick={toggleDropdown} // Toggle dropdown visibility on profile image click
           />
           {dropdownVisible && (
             <div className="dropdown-menu">
-              <div className="dropdown-item"><Link to={"/profile"}>{ "Profile"}</Link></div>
+              <div className="dropdown-item">
+                <Link to={"/profile"}>{ "Profile"}</Link>
+              </div>
               <div className="dropdown-item" onClick={logout}>
                 Logout
               </div>

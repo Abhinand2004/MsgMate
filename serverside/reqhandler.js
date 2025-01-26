@@ -10,23 +10,6 @@ const app = express();
 
 
 
-export async function poll(req, res) {
-    const { id } = req.params;
-    const lastMessageId = req.query.lastMessageId;
-
-    console.log(`Polling for new messages in chat: ${id} with lastMessageId: ${lastMessageId}`); // Debugging log
-
-    try {
-        const messages = await getNewMessages(id, lastMessageId);
-        console.log(`Sending back new messages: ${messages.length}`); // Debugging log
-        res.send(messages);
-    } catch (error) {
-        console.error("Error polling messages:", error);
-        res.status(500).send("Error polling messages");
-    }
-};
-
-
 
  
 export async function register(req, res) {
@@ -387,7 +370,9 @@ export async function createChatList(req, res) {
             sender: { username: sender.username, image: sender.image },
             receiver: { username: receiver.username, image: receiver.image },
             lastmsg:null,
-            time:null
+            time:null,
+            count:0,
+            lastSender:null
         });
 
         return res.status(200).send({ msg: "Chat list created successfully", chatList });
@@ -402,6 +387,7 @@ export async function setlastmsg(req, res) {
         const sender_id = req.user.UserID;  
         const { id: receiver_id } = req.params; 
 
+        // Find the last message between the sender and receiver
         const lastMessage = await ChatBox.findOne(
             {
                 $or: [
@@ -410,13 +396,17 @@ export async function setlastmsg(req, res) {
                 ]
             },
             {}, 
-            { sort: { time: -1 } } 
+            { sort: { time: -1 } }  // Sorting by time to get the last message
         );
 
         if (!lastMessage) {
             return res.status(404).send({ msg: "No messages found between these users" });
         }
+// console.log(lastMessage);
 
+        // Get the sender of the last message
+       
+        // Update the chatListSchema with the last message and sender
         const result = await chatListSchema.findOneAndUpdate(
             {
                 $or: [
@@ -424,20 +414,74 @@ export async function setlastmsg(req, res) {
                     { sender_id: receiver_id, receiver_id: sender_id }
                 ]
             },
-            { $set: { lastmsg: lastMessage.message ,time:lastMessage.time} }, 
-            { new: true } 
+            { 
+                $set: { 
+                    lastmsg: lastMessage.message, 
+                    time: lastMessage.time,
+                    lastSender: lastMessage.sender_id  // Include the sender of the last message
+                } 
+            }, 
+            { new: true }  // Return the updated document
         );
 
         if (!result) {
             return res.status(404).send({ msg: "Chat list not found" });
         }
 
-        return res.status(200).send({msg: "Last message updated successfully",});
+        return res.status(200).send({
+            msg: "Last message and sender updated successfully"
+        });
     } catch (error) {
         return res.status(500).send({ msg: "Failed to update last message", error: error.message });
     }
 }
 
+
+export async function setcount(req, res) {
+    try {
+        const sender_id = req.user.UserID;  // The ID of the logged-in user (my ID)
+        const { id: receiver_id } = req.params; // The other user's ID from URL params
+
+        // Fetch all messages between the two users where "seen" is false
+        const unseenMessages = await ChatBox.find(
+            {
+                $or: [
+                    { sender_id: sender_id, receiver_id: receiver_id, seen: false },
+                    { sender_id: receiver_id, receiver_id: sender_id, seen: false }
+                ]
+            }
+        );
+
+        // Count the number of unseen messages
+        const unseenCount = unseenMessages.length;
+
+        // If all messages are seen, set count to 0
+        const updatedCount = unseenCount === 0 ? 0 : unseenCount;
+
+        // Update the count in chatListSchema for the chat between these users
+        const result = await chatListSchema.findOneAndUpdate(
+            {
+                $or: [
+                    { sender_id: sender_id, receiver_id: receiver_id },
+                    { sender_id: receiver_id, receiver_id: sender_id }
+                ]
+            },
+            { $set: { count: updatedCount } }, // Set the count field to the unseen message count (or 0)
+            { new: true } // Return the updated document
+        );
+
+        if (!result) {
+            return res.status(404).send({ msg: "Chat list not found" });
+        }
+
+        return res.status(200).send({
+            msg: "Message count updated successfully",
+            count: updatedCount
+        });
+    } catch (error) {
+        return res.status(500).send({ msg: "Failed to update message count", error: error.message });
+    }
+}
 
 
 
@@ -455,7 +499,10 @@ export async function displayChatList(req, res) {
                     chatId: chat._id,
                     otherUserId: chat.receiver_id ,
                     lastmsg:chat.lastmsg,
-                    time:chat.time
+                    time:chat.time,
+                    count:chat.count,
+                    lastSender:chat.lastSender,
+                    my_id:req.user.UserID
                 };
             } else {
                 return {
@@ -464,8 +511,10 @@ export async function displayChatList(req, res) {
                     chatId: chat._id,
                     otherUserId: chat.sender_id ,
                     lastmsg:chat.lastmsg,
-                    time:chat.time
-
+                    time:chat.time,
+                    count:chat.count,
+                    lastSender:chat. lastSender,
+                    my_id:req.user.UserID
                 };
             }
         });

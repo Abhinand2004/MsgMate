@@ -19,8 +19,6 @@ router.route("/createchatlist/:id").post(Auth, rh.createChatList);
 router.route("/showchatlist").get(Auth, rh.displayChatList);
 router.route("/reciver/:id").get(rh.reciverdetails);
 router.route("/setlastmsg/:id").put(Auth, rh.setlastmsg);
-
-// Long Polling endpoint to fetch new messages
-router.route("/poll/:id").get(Auth, rh.poll)
+router.route("/setcount/:id").put(Auth,rh.setcount)
 
 export default router;
