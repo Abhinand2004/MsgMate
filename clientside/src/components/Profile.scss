@@ -1,6 +1,8 @@
+
+
 .profile-container {
     display: flex;
-    height: 87vh;
+    height: 100vh;
 
    
     .left-panel {
@@ -19,7 +21,6 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
             width: 100%;
             text-align: center;
-
             .profile-image {
                 padding: 20px;
                 position: relative;
@@ -72,26 +73,30 @@
 
                 .profile-field {
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                 gap: 20px;
                     margin-bottom: 15px;
-
+                
                     label {
                         font-weight: bold;
                         color: #555;
                         font-size: 18px;
                         font-family: "Arial", sans-serif;
+                        
                     }
-
+                
                     span,
                     .editable-field {
                         font-size: 16px;
                         color: #333;
+                        width: 80%; 
+                        word-wrap: break-word; 
+                        overflow-wrap: break-word; 
+                        max-width: 100%;
+                        line-height: 1.5; 
                     }
-
+                
                     .editable-field {
                         padding: 10px;
-                        width: 60%;
                         border: 1px solid #ddd;
                         border-radius: 8px;
                         background-color: #f8f9fa;
@@ -102,6 +107,7 @@
                         }
                     }
                 }
+                
             }
         }
     }
@@ -128,10 +134,16 @@
         .left-panel {
             width: 100%; 
             padding: 10px;
+            min-width: 200px;
         }
 
         .right-panel {
             display: none; 
         }
     }
+}
+
+
+@media (max-width: 360px) {
+ 
 }

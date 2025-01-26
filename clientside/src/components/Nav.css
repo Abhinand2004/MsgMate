@@ -95,6 +95,9 @@
 }
 
 @media (max-width: 1024px) {
+  .navbar{
+    height: 68px;
+  }
   .navbar-container {
     width: 95%;
     max-width: 1200px;

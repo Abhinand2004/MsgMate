@@ -91,7 +91,8 @@ const ChatList = ({ serch }) => {
       <div className="left-panel">
         <ul className="chat-list">
           {chats.length === 0 ? (
-            <p>No chats found</p>
+            <p>Start your first conversation<br>
+            </br> and stay connected.</p>
           ) : (
             chats
               .filter((chat) => {
