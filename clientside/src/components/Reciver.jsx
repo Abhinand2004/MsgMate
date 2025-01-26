@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import Navbar from "./Nav";
 import "./Profile.scss"; // Reuse the existing styles
 import { useParams } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const Receiver = () => {
     const [receiverData, setReceiverData] = useState({ image: "", username: "", about: "", email: "", phone: "" });
-    const {id}=useParams()
-    console.log(id);
-    
+    const { id } = useParams();
+
     const fetchReceiverData = async () => {
         try {
             const response = await fetch(`http://localhost:3000/api/reciver/${id}`);
@@ -24,10 +24,11 @@ const Receiver = () => {
 
     useEffect(() => {
         fetchReceiverData();
-    }, []);
+    }, [id]);
 
     return (
         <div className="profile-container">
+            {/* Left Panel */}
             <div className="left-panel">
                 <div className="profile-card">
                     <div className="profile-image">
@@ -39,26 +40,34 @@ const Receiver = () => {
                     <div className="profile-details">
                         <div className="profile-field">
                             <label>Username:</label>
-                            <span>{receiverData.username}</span>
+                            <span>{receiverData.username || "N/A"}</span>
                         </div>
                         <div className="profile-field">
                             <label>About:</label>
-                            <span>{receiverData.about}</span>
+                            <span>{receiverData.about || "N/A"}</span>
                         </div>
                         <div className="profile-field">
                             <label>Email:</label>
-                            <span>{receiverData.email}</span>
+                            <span>{receiverData.email || "N/A"}</span>
                         </div>
                         <div className="profile-field">
-                            <label>Phone :</label>
-                            <span>{receiverData.phone}</span>
+                            <label>Phone:</label>
+                            <span>{receiverData.phone || "N/A"}</span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Right Panel */}
             <div className="right-panel">
-                <h1 className="company-name">Receiver Details</h1>
-            </div>
+                           <div className="right-card">
+                               <img src={logo} alt="Company Logo" className="company-logo" />
+                               <h1 className="company-name">Msg-Mate</h1>
+                               <p className="company-description">
+                               Discover New Profiles.
+                               </p>
+                           </div>
+                       </div>
         </div>
     );
 };

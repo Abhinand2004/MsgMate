@@ -3,8 +3,9 @@
     height: 91vh;
 
     .left-panel {
+        background-color: #f9f9f9;
+
         width: 30%;
-        background-color: #f8f9fa;
         border-right: 1px solid #e0e0e0;
         padding: 20px;
         display: flex;
@@ -105,11 +106,13 @@
     }
 
     .right-panel {
+        background-color: #ffffff;
+
+
         width: 70%;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: #ddd;
 
         .company-name {
             font-size: 3rem;

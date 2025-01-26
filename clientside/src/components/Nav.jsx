@@ -15,8 +15,10 @@ const Navbar = ({ setSearch }) => {
   };
 
   const logout = () => {
+    setDropdownVisible(false); // Close dropdown
     localStorage.removeItem("token");
     navigate("/login");
+    window.location.reload()
   };
 
   const fetchProfile = async () => {
@@ -37,32 +39,35 @@ const Navbar = ({ setSearch }) => {
         setProfileImage(response.data.data.image);
         setUsername(response.data.data.username);
       } else {
-        navigate("/login")
+        navigate("/login");
         console.error("Failed to fetch user data");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      navigate("/login")
-
+      navigate("/login");
     }
   };
 
   useEffect(() => {
-
     fetchProfile();
-      
-  
   }, []);
 
+  const profilego = () => {
+    setDropdownVisible(false); 
+    navigate("/profile");
+  };
+
   const handleSearchChange = (e) => {
-    setSearch(e.target.value); // Update the search input value
+    setSearch(e.target.value);
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-logo">
-          <img src={logo} alt="Logo" className="logo-image" />
+          <Link to={"/"}>
+            <img src={logo} alt="Logo" className="logo-image" />
+          </Link>
         </div>
 
         <div className="navbar-search">
@@ -83,8 +88,8 @@ const Navbar = ({ setSearch }) => {
           />
           {dropdownVisible && (
             <div className="dropdown-menu">
-              <div className="dropdown-item">
-                <Link to={"/profile"}>{ "Profile"}</Link>
+              <div className="dropdown-item" onClick={profilego}>
+                Profile
               </div>
               <div className="dropdown-item" onClick={logout}>
                 Logout

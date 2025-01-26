@@ -5,13 +5,14 @@ import { FaRegComments } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Nav";
 import ChatBox from "./ChatBox";
+import logo from "../assets/logo.png";
 
 const ChatList = ({ serch }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
-console.log(serch);
+  console.log(serch);
 
   // Fetch chat list
   const fetchChats = async () => {
@@ -33,10 +34,9 @@ console.log(serch);
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-    fetchChats();
-        
-    }else{
-        navigate("/login")
+      fetchChats();
+    } else {
+      navigate("/login");
     }
   }, []);
 
@@ -107,7 +107,11 @@ console.log(serch);
           {selectedChat ? (
             <ChatBox chatId={selectedChat} />
           ) : (
-            <h1 className="company-name">Your Company Name</h1>
+            <div className="welcome-container">
+              <img src={logo} alt="Company Logo" className="company-logo" />
+              <h1 className="company-name">Msg-Mate</h1>
+              <p className="company-description">Stay connected with the people who matter most.</p>
+            </div>
           )}
         </div>
       )}

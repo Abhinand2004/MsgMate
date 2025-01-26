@@ -69,7 +69,7 @@ const Login = () => {
             <a href="/pverify" className="link">
               Forgot Password?
             </a>
-            <a href="/register" className="link">
+            <a href="/verify" className="link">
               Register
             </a>
           </div>

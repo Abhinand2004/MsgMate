@@ -3,6 +3,7 @@ import axios from "axios";
 import { FaEdit, FaSave } from "react-icons/fa";
 import Navbar from "./Nav";
 import "./Profile.scss";
+import logo from "../assets/logo.png";
 
 const Profile = () => {
     const [userData, setUserData] = useState({ image: "", username: "", about: "", email: "", phone: "" });
@@ -152,7 +153,13 @@ const Profile = () => {
             </div>
 
             <div className="right-panel">
-                <h1 className="company-name">Your Company Name</h1>
+                <div className="right-card">
+                    <img src={logo} alt="Company Logo" className="company-logo" />
+                    <h1 className="company-name">Msg-Mate</h1>
+                    <p className="company-description">
+                    No Messages Yet, Start Chatting!
+                    </p>
+                </div>
             </div>
         </div>
     );

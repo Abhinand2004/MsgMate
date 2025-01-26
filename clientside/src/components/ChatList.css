@@ -4,92 +4,111 @@
     height: 91vh;
     overflow: hidden;
     font-family: Arial, sans-serif;
-}
-
-.left-panel {
+  }
+  
+  .left-panel {
     width: 400px;
-    background-color: #f0f0f0;
-    border-right: 1px solid #dcdcdc;
-    overflow-y: auto; 
+    background-color: #f9f9f9;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
     flex-direction: column;
     position: relative;
     max-height: 100vh;
-}
-
-.right-panel {
+    padding: 10px;
+  }
+  
+  .right-panel {
     width: 70%;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #ffffff;
-}
-
-.company-name {
-    font-size: 32px;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .company-name {
+    font-size: 36px;
     font-weight: bold;
     color: #333;
-}
-
-.chat-list {
+    margin-top: 20px;
+    letter-spacing: 1.2px;
+  }
+  
+  .company-description {
+    font-size: 18px;
+    color: #6c757d;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+  
+  .company-logo {
+    max-width: 220px;
+    opacity: 0.6;
+    margin-bottom: 30px;
+  }
+  
+  .chat-list {
     list-style-type: none;
     padding: 0;
     margin: 0;
-}
-
-.chat-item {
+  }
+  
+  .chat-item {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    padding: 16px 20px;
     border-bottom: 1px solid #e0e0e0;
     cursor: pointer;
     transition: background-color 0.3s ease;
     position: relative;
-}
-
-.chat-item:hover {
+    border-radius: 8px;
+  }
+  
+  .chat-item:hover {
     background-color: #e6f7ff;
-}
-
-.chat-user-image {
+  }
+  
+  .chat-user-image {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     margin-right: 12px;
     object-fit: cover;
-}
-
-.chat-user-details {
+  }
+  
+  .chat-user-details {
     display: flex;
     flex-direction: column;
     flex: 1;
     position: relative;
-}
-
-.chat-user-name {
-    font-size: 16px;
+  }
+  
+  .chat-user-name {
+    font-size: 18px;
     font-weight: bold;
     color: #000;
     margin-bottom: 4px;
-}
-
-.chat-last-message {
-    font-size: 14px;
+  }
+  
+  .chat-last-message {
+    font-size: 15px;
     color: #6c757d;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.chat-time {
+  }
+  
+  .chat-time {
     position: absolute;
     top: 90%;
     right: 8px;
     transform: translateY(-50%);
     font-size: 12px;
     color: #888;
-}
-
-.chat-count {
+  }
+  
+  .chat-count {
     background-color: #4caf50;
     color: white;
     border-radius: 50%;
@@ -101,12 +120,12 @@
     font-size: 12px;
     position: absolute;
     right: 8px;
-}
-
-.chat-message-button {
+  }
+  
+  .chat-message-button {
     position: absolute;
-    bottom: 16px; 
-    right: 16px; 
+    bottom: 16px;
+    right: 16px;
     background-color: #25d366;
     color: white;
     border: none;
@@ -119,40 +138,48 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.chat-message-button:hover {
+  }
+  
+  .chat-message-button:hover {
     background-color: #20c354;
-}
-
-.chat-message-button svg {
+  }
+  
+  .chat-message-button svg {
     width: 24px;
     height: 24px;
-}
-
-@media (max-width: 760px) {
+  }
+  
+  .welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  @media (max-width: 760px) {
     .container {
-        flex-direction: column;
-    
+      flex-direction: column;
     }
-
+  
     .left-panel {
-        margin: 0;
-        padding: 0;
-        width: 100%; 
-        height: 100vh;
-        border-right: none; 
-        position: relative;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      border-right: none;
+      position: relative;
     }
-
+  
     .right-panel {
-        display: none; 
+      display: none;
     }
-}
-
-.tick-marks {
+  }
+  
+  .tick-marks {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     margin-top: 4px;
-}
+  }
+  
