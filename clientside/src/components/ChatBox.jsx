@@ -85,6 +85,7 @@ const ChatBox = ({ chatId }) => {
                 setUser(response.data.user);
                 setMyId(response.data.my_id);
             } else {
+                
                 console.error("Failed to fetch user details", response.status);
             }
         } catch (error) {
@@ -143,6 +144,7 @@ const ChatBox = ({ chatId }) => {
 
             setMessages((prevMessages) => [...prevMessages, message]);
             setNewMessage("");
+            updatelastmessage()
             scrollToBottom();
 
             socket.current.emit("chat message", message);
@@ -291,3 +293,4 @@ const ChatBox = ({ chatId }) => {
 };
 
 export default ChatBox;
+    

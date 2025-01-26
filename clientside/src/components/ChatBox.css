@@ -1,4 +1,3 @@
-/* ChatBox.css */
 
 .chat-box-fullscreen {
     display: flex;
@@ -60,14 +59,14 @@ scrollbar-width: none;
     border-radius: 10px;
     font-size: 14px;
     line-height: 1.5;
-    word-wrap: break-word; /* Ensure long messages break into next line */
+    word-wrap: break-word; 
 }
 
 .message.sent {
     align-self: flex-end;
     background-color: #daf8cb;
     text-align: right;
-    margin-left: auto; /* Ensure it sticks to the right */
+    margin-left: auto; 
 }
 
 .message.received {
@@ -75,7 +74,7 @@ scrollbar-width: none;
     background-color: #ffffff;
     text-align: left;
     border: 1px solid #e0e0e0;
-    margin-right: auto; /* Ensure it sticks to the left */
+    margin-right: auto; 
 }
 
 .message p {
@@ -100,11 +99,11 @@ scrollbar-width: none;
 }
 
 .sent-tick {
-    color: gray; /* Sent message single tick */
+    color: gray; 
 }
 
 .seen-tick {
-    color: blue; /* Seen message double tick */
+    color: blue; 
 }
 
 .message-box {

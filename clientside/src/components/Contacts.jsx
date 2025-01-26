@@ -24,13 +24,12 @@ const Contact = ({ serch }) => {
       }
     };
 
-    fetchContacts(); // Call the function to fetch contacts
-  }, []); // Empty dependency array to run the effect only once after component mounts
+    fetchContacts(); 
+  }, []); 
 
-  // Filter contacts based on the search term (serch)
   const filteredContacts = contacts.filter((contact) => {
-    const username = contact.username || ""; // Default to empty string if undefined or null
-    const about = contact.about || ""; // Default to empty string if undefined or null
+    const username = contact.username || ""; 
+    const about = contact.about || ""; 
 
     return (
       username.toLowerCase().includes(serch.toLowerCase()) ||
@@ -40,14 +39,12 @@ const Contact = ({ serch }) => {
 
   const handleContactClick = (contact) => {
     if (screenWidth < 760) {
-      // Navigate to ChatBox page with contact._id in the URL for smaller screens
       navigate(`/chat/${contact._id}`);
     } else {
-      setSelectedContact(contact._id); // Set the selected contact's _id for larger screens
+      setSelectedContact(contact._id); 
     }
   };
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
@@ -65,7 +62,7 @@ const Contact = ({ serch }) => {
               <div
                 className="contact-item"
                 key={contact._id}
-                onClick={() => handleContactClick(contact)} // Pass the contact._id
+                onClick={() => handleContactClick(contact)} 
               >
                 <img src={contact.image} alt="Profile" className="contact-image" />
                 <div className="contact-details">
@@ -81,7 +78,6 @@ const Contact = ({ serch }) => {
         
       </div>
 
-      {/* Conditionally display right panel */}
       {screenWidth > 760 && (
         <div className="right-panel">
           {selectedContact ? (

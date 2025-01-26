@@ -7,15 +7,15 @@ import logo from "../assets/logo.png";
 const Navbar = ({ setSearch }) => {
   const navigate = useNavigate();
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [profileImage, setProfileImage] = useState(""); // State to store the profile image
-  const [username, setUsername] = useState(""); // State to store the username
+  const [profileImage, setProfileImage] = useState(""); 
+  const [username, setUsername] = useState(""); 
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
 
   const logout = () => {
-    setDropdownVisible(false); // Close dropdown
+    setDropdownVisible(false); 
     localStorage.removeItem("token");
     navigate("/login");
     window.location.reload()
@@ -75,16 +75,17 @@ const Navbar = ({ setSearch }) => {
             type="text"
             className="search-input"
             placeholder="Search..."
-            onChange={handleSearchChange} // Handle input changes to update search value
+            onChange={handleSearchChange}
           />
         </div>
 
         <div className="navbar-profile">
+          <div className="username">{username}</div>
           <img
-            src={profileImage || "/default-profile.jpg"} // Default profile image
-            alt={username || "Profile"} // Default username if not available
+            src={profileImage || "/default-profile.jpg"} 
+            alt={username || "Profile"} 
             className="profile-image"
-            onClick={toggleDropdown} // Toggle dropdown visibility on profile image click
+            onClick={toggleDropdown} 
           />
           {dropdownVisible && (
             <div className="dropdown-menu">

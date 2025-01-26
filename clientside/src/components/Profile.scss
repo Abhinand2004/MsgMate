@@ -1,7 +1,8 @@
 .profile-container {
     display: flex;
-    height: 91vh;
+    height: 87vh;
 
+   
     .left-panel {
         background-color: #f9f9f9;
 
@@ -125,12 +126,12 @@
 
     @media (max-width: 760px) {
         .left-panel {
-            width: 100%; /* Make left panel full width */
+            width: 100%; 
             padding: 10px;
         }
 
         .right-panel {
-            display: none; /* Hide right panel on small screens */
+            display: none; 
         }
     }
 }

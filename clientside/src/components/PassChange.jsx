@@ -9,7 +9,6 @@ const PassChange = () => {
 
     const Navigate=useNavigate()
     useEffect(() => {
-        // Retrieve email from localStorage
         const storedEmail = localStorage.getItem('email');
         if (storedEmail) {
             setEmail(storedEmail);
@@ -19,12 +18,7 @@ const PassChange = () => {
     const handlePassChange = async (e) => {
         e.preventDefault();
         try {
-         const res=   await axios.post('http://localhost:3000/api/passchange', {
-                email,
-                pwd,
-                cpwd
-            });
-            // Handle success (you can redirect or show a success message)
+         const res=   await axios.post('http://localhost:3000/api/passchange', {email, pwd, cpwd   });
             if (res.status==200) {
               Navigate("/login")  
             }else{
@@ -32,12 +26,11 @@ const PassChange = () => {
             }
 
         } catch (error) {
-            // Handle error (you can show an error message)
+            
         }
     };
 
     const handleLogin = () => {
-        // Redirect to login page or handle login logic
         window.location.href = '/login';
     };
 

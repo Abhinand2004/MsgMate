@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./Nav";
-import "./Profile.scss"; // Reuse the existing styles
+import "./Profile.scss"; 
 import { useParams } from "react-router-dom";
 import logo from "../assets/logo.png";
 
@@ -28,7 +28,6 @@ const Receiver = () => {
 
     return (
         <div className="profile-container">
-            {/* Left Panel */}
             <div className="left-panel">
                 <div className="profile-card">
                     <div className="profile-image">
@@ -58,7 +57,6 @@ const Receiver = () => {
                 </div>
             </div>
 
-            {/* Right Panel */}
             <div className="right-panel">
                            <div className="right-card">
                                <img src={logo} alt="Company Logo" className="company-logo" />

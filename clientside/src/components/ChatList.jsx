@@ -3,7 +3,6 @@ import axios from "axios";
 import "./ChatList.css";
 import { FaRegComments } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Navbar from "./Nav";
 import ChatBox from "./ChatBox";
 import logo from "../assets/logo.png";
 
@@ -12,9 +11,8 @@ const ChatList = ({ serch }) => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
-  console.log(serch);
+  // console.log(serch);
 
-  // Fetch chat list
   const fetchChats = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -32,15 +30,37 @@ const ChatList = ({ serch }) => {
     }
   };
 
-  useEffect(() => {
-    if (localStorage.getItem("token")) {
-      fetchChats();
-    } else {
+
+
+  const fetchProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found");
+      return;
+    }
+
+    try {
+      const response = await axios.get("http://localhost:3000/api/navdata", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (response.status === 200) {
+        console.log("success");
+      } else {
+        alert("token expierd login again")
+        navigate("/login");
+      }
+    } catch (error) {
+      alert("token expierd login again")
       navigate("/login");
     }
+  };
+
+  useEffect(() => {
+    fetchProfile()
+      fetchChats();
+    
   }, []);
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setScreenWidth(window.innerWidth);
@@ -61,6 +81,11 @@ const ChatList = ({ serch }) => {
     navigate("/contact");
   };
 
+  const truncateMessage = (message, maxLength = 30) => {
+    if (!message) return "";
+    return message.length > maxLength ? `${message.slice(0, maxLength)}...` : message;
+  };
+
   return (
     <div className="container">
       <div className="left-panel">
@@ -70,8 +95,7 @@ const ChatList = ({ serch }) => {
           ) : (
             chats
               .filter((chat) => {
-                // Ensure both serch and chat.username are strings before using toLowerCase
-                const searchValue = serch?.toLowerCase() || '';
+                const searchValue = serch?.toLowerCase() || "";
                 return chat.username?.toLowerCase().includes(searchValue);
               })
               .map((chat) => (
@@ -82,10 +106,11 @@ const ChatList = ({ serch }) => {
                 >
                   <img src={chat.image} alt={chat.username} className="chat-user-image" />
                   <div className="chat-user-details">
-                    <span className="chat-user-name">{chat.username}</span>
-                    <span className="chat-last-message">{chat.lastmsg}</span>
+                    <span className="chat-user-name">{truncateMessage(chat.username, 15)} </span>
+                    <span className="chat-last-message">
+                      {truncateMessage(chat.lastmsg, 20)} 
+                    </span>
 
-                    {/* Show count in green circle if last sender is not the current user */}
                     {chat.lastSender !== chat.my_id && chat.count > 0 && (
                       <span className="chat-count">{chat.count}</span>
                     )}
@@ -95,14 +120,12 @@ const ChatList = ({ serch }) => {
                 </li>
               ))
           )}
-           
         </ul>
         <button className="chat-message-button1" onClick={contacts}>
           <FaRegComments />
         </button>
       </div>
 
-      {/* Conditionally display right panel */}
       {screenWidth > 760 && (
         <div className="right-panel">
           {selectedChat ? (

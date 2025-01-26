@@ -368,7 +368,6 @@ export async function createChatList(req, res) {
         const chatList = await chatListSchema.create({
             sender_id,
             receiver_id,
-            background: null,
             sender: { username: sender.username, image: sender.image },
             receiver: { username: receiver.username, image: receiver.image },
             lastmsg:null,
