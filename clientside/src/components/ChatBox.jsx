@@ -18,16 +18,8 @@ const ChatBox = ({ chatId }) => {
 
     const fetchId = id || chatId;
 
-    // useEffect=(()=>{scrollToBottom()},[fetchId])
+    
 
-
-
-    useEffect(() => {
-      
-        scrollToBottom()
-      
-        
-    }, [socket]);
     useEffect(() => {
         socket.current = io("http://localhost:3000");
 
@@ -44,11 +36,13 @@ const ChatBox = ({ chatId }) => {
         return () => {
             socket.current.disconnect();
         };
-        scrollToBottom()
     }, [messages]);
 
-   
-   
+    
+    useEffect(() => {
+        scrollToBottom();
+    }, [socket]);
+
 
     const fetchMessages = async () => {
         try {
@@ -58,14 +52,14 @@ const ChatBox = ({ chatId }) => {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
             );
-           if (response.status==200) {
-            setMessages(response.data.messages);
-            setLoading(false);
-          
-           }else{
-            alert("faild to fetch")
-           }
-           
+            if (response.status === 200) {
+                
+                setMessages(response.data.messages);
+                setLoading(false);
+               
+            } else {
+                alert("Failed to fetch messages.");
+            }
         } catch (error) {
             setError("Error fetching messages. Please try again.");
             setLoading(false);
@@ -81,9 +75,10 @@ const ChatBox = ({ chatId }) => {
         }
 
         try {
-            const response = await axios.get(`http://localhost:3000/api/user/${fetchId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const response = await axios.get(
+                `http://localhost:3000/api/user/${fetchId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
             if (response.status === 200) {
                 setUser(response.data.user);
@@ -97,73 +92,81 @@ const ChatBox = ({ chatId }) => {
         }
     };
 
-    
     const initializeChatList = async () => {
         try {
             const token = localStorage.getItem("token");
-            await axios.post(`http://localhost:3000/api/createchatlist/${chatId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            if (!token) {
+                console.error("No token found");
+                return;
+            }
+            const response = await axios.post(
+                `http://localhost:3000/api/createchatlist/${fetchId}`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            if (response.status === 200) {
+                console.log("Chat list initialized successfully.");
+            }
         } catch (error) {
             if (error.response && error.response.status === 400) {
-                console.log("Chat list already exists");
+                console.log("Chat list already exists.");
             } else {
                 console.error("Error initializing chat list:", error);
             }
         }
     };
 
-   const sendMessage = async (messageContent) => {
-    if (messageContent.trim() === "" || my_id === null) return;
+    const sendMessage = async (messageContent) => {
+        if (messageContent.trim() === "" || my_id === null) return;
 
-    const message = {
-        sender_id: my_id,
-        message: messageContent,
-        time: new Date().toISOString(),
-        seen: false,
+        const message = {
+            sender_id: my_id,
+            message: messageContent,
+            time: new Date().toISOString(),
+            seen: false,
+        };
+
+        try {
+            if (messages.length === 0) {
+                await initializeChatList();
+            }
+
+            await axios.post(
+                `http://localhost:3000/api/sendmsg/${fetchId}`,
+                { message: messageContent },
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+
+            setMessages((prevMessages) => [...prevMessages, message]);
+            setNewMessage("");
+            scrollToBottom();
+
+            socket.current.emit("chat message", message);
+        } catch (error) {
+            setError("Failed to send message. Please try again.");
+            console.error("Failed to send message:", error);
+        }
     };
 
-    try {
-        // Initialize the chat list when sending the first message
-        if (messages.length === 0) {
-            await initializeChatList(); // Initialize chat list
-        }
-
-        await axios.post(
-            `http://localhost:3000/api/sendmsg/${fetchId}`,
-            { message: messageContent },
-            { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-        );
-
-        setMessages((prevMessages) => [...prevMessages, message]);
-        setNewMessage("");
+    const handleSend = () => {
+        sendMessage(newMessage);
+        updatelastmessage();
         scrollToBottom();
+    };
 
-        socket.current.emit("chat message", message);
-    } catch (error) {
-        setError("Failed to send message. Please try again.");
-        console.error("Failed to send message:", error);
-    }
-};
-
-const handleSend = () => {
-    sendMessage(newMessage);
-    updatelastmessage();
-    scrollToBottom();
-};
-
-    const updatelastmessage = async (id) => {
+    const updatelastmessage = async () => {
         try {
             await axios.put(
                 `http://localhost:3000/api/setlastmsg/${fetchId}`,
-                { chatid: chatId }, // Body now correctly sends receiverId
+                { chatid: chatId },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
         } catch (error) {
             console.error("Error updating unseen message count:", error);
         }
     };
-
 
     const handleChange = (e) => {
         setNewMessage(e.target.value);
@@ -172,7 +175,7 @@ const handleSend = () => {
     const scrollToBottom = () => {
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 50); 
+        }, 50);
     };
 
     const markMessagesAsSeen = async () => {
@@ -222,17 +225,15 @@ const handleSend = () => {
                             className={`message ${msg.sender_id === my_id ? "sent" : "received"}`}
                         >
                             <p>{msg.message}</p>
-
                             <div className="message-footer">
                                 <small>{formatTime(msg.time)}</small>
-
                                 {msg.sender_id === my_id && (
                                     <div className="tick-marks">
                                         <span className="tick">
                                             {msg.seen ? (
-                                                <span className="seen-tick">✔</span> 
+                                                <span className="seen-tick">✔</span>
                                             ) : (
-                                                <span className="sent-tick">✔✔</span> 
+                                                <span className="sent-tick">✔✔</span>
                                             )}
                                         </span>
                                     </div>
