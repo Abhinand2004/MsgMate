@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Passverify.scss";
-
+import url from "../assets/url";
 const PassVerify = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -9,7 +9,7 @@ const PassVerify = () => {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3000/api/verifypass", {
+      const response = await axios.post(`${url}/verifypass`, {
         email,
       });
       if (response.status==200) {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios'; 
 import './Register.css';
 import { Navigate, useNavigate } from 'react-router-dom';
-
+import url from '../assets/url';
 const RegisterPage = () => {
     const   Navigate=useNavigate()
     const [image, setImage] = useState(null);
@@ -46,7 +46,7 @@ const RegisterPage = () => {
         console.log(formData);
 
         try {
-            const response = await axios.post('http://localhost:3000/api/register', formData);
+            const response = await axios.post(`${url}/register`, formData);
             if (response.status==200) {
                 Navigate("/login")
             }else{

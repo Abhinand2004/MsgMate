@@ -1,22 +1,47 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./ChatList.css";
 import { FaRegComments } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import ChatBox from "./ChatBox";
 import logo from "../assets/logo.png";
-
+import io from "socket.io-client"; 
+import url from "../assets/url";
 const ChatList = ({ serch }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
-  // console.log(serch);
+  const socket = useRef(null); 
+
+  useEffect(() => {
+    socket.current = io("http://localhost:3000", { transports: ["websocket"] });
+ 
+
+    socket.current.on("updatechatlist", () => {
+      fetchChats(); 
+    });
+
+    fetchProfile();
+    fetchChats();
+
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchChats = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/showchatlist", {
+      const response = await axios.get(`${url}/showchatlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -30,8 +55,6 @@ const ChatList = ({ serch }) => {
     }
   };
 
-
-
   const fetchProfile = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -40,34 +63,20 @@ const ChatList = ({ serch }) => {
     }
 
     try {
-      const response = await axios.get("http://localhost:3000/api/navdata", {
+      const response = await axios.get(`${url}/navdata`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (response.status === 200) {
-        console.log("success");
+        // console.log("success");
       } else {
-        alert("token expierd login again")
+        alert("token expired, login again");
         navigate("/login");
       }
     } catch (error) {
-      alert("token expierd login again")
+      alert("token expired, login again");
       navigate("/login");
     }
   };
-
-  useEffect(() => {
-    fetchProfile()
-      fetchChats();
-    
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const handleChatClick = (id) => {
     if (screenWidth <= 760) {
@@ -91,8 +100,7 @@ const ChatList = ({ serch }) => {
       <div className="left-panel">
         <ul className="chat-list">
           {chats.length === 0 ? (
-            <p>Start your first conversation<br>
-            </br> and stay connected.</p>
+            <p>Start your first conversation<br></br> and stay connected.</p>
           ) : (
             chats
               .filter((chat) => {
@@ -109,7 +117,7 @@ const ChatList = ({ serch }) => {
                   <div className="chat-user-details">
                     <span className="chat-user-name">{truncateMessage(chat.username, 15)} </span>
                     <span className="chat-last-message">
-                      {truncateMessage(chat.lastmsg, 20)} 
+                      {truncateMessage(chat.lastmsg, 20)}
                     </span>
 
                     {chat.lastSender !== chat.my_id && chat.count > 0 && (

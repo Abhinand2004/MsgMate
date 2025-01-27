@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { FaPaperPlane, FaEllipsisV } from "react-icons/fa";
 import io from "socket.io-client";
 import "./ChatBox.css";
-
+import url from "../assets/url";
 const ChatBox = ({ chatId }) => {
     const { id } = useParams();
     const [messages, setMessages] = useState([]);
@@ -22,25 +22,37 @@ const ChatBox = ({ chatId }) => {
     
 
     useEffect(() => {
-        socket.current = io("http://localhost:3000");
-
+        socket.current = io("http://localhost:3000", { transports: ["websocket"] });
+    
+        // socket.current.on("connect", () => {
+        //     console.log("User connected with socket id:", socket.current.id);
+        // });
+    
         socket.current.on("chat message", (msg) => {
             if (msg.sender_id !== my_id) {
                 setMessages((prevMessages) => [...prevMessages, msg]);
             }
         });
-
+    
+        socket.current.on("disconnect", () => {
+            console.log("User disconnected");
+        });
+    
         fetchMessages();
-        fetchUserDetails();
-        markMessagesAsSeen();
-
+    
         return () => {
             socket.current.disconnect();
         };
-    }, [messages]);
+    }, [fetchId]); 
+    
+    
 
-
+    
     useEffect(() => {
+       markMessagesAsSeen()
+    }, [messages]);
+    useEffect(() => {
+        fetchUserDetails();
         scrollToBottom();
     }, [socket]);
 
@@ -48,7 +60,7 @@ const ChatBox = ({ chatId }) => {
     const fetchMessages = async () => {
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/displaymsg/${fetchId}`,
+                `${url}/displaymsg/${fetchId}`,
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
@@ -57,6 +69,7 @@ const ChatBox = ({ chatId }) => {
                 setMessages(response.data.messages);
                 updatecount()
                 setLoading(false);
+                fetchMessages()
                
             } else {
                 alert("Failed to fetch messages.");
@@ -77,7 +90,7 @@ const ChatBox = ({ chatId }) => {
 
         try {
             const response = await axios.get(
-                `http://localhost:3000/api/user/${fetchId}`,
+                `${url}/user/${fetchId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -102,7 +115,7 @@ const ChatBox = ({ chatId }) => {
                 return;
             }
             const response = await axios.post(
-                `http://localhost:3000/api/createchatlist/${fetchId}`,
+                `${url}/createchatlist/${fetchId}`,
                 {},
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -137,7 +150,7 @@ const ChatBox = ({ chatId }) => {
             }
 
             await axios.post(
-                `http://localhost:3000/api/sendmsg/${fetchId}`,
+                `${url}/sendmsg/${fetchId}`,
                 { message: messageContent },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
@@ -165,7 +178,7 @@ const ChatBox = ({ chatId }) => {
     const updatelastmessage = async () => {
         try {
        const res=     await axios.put(
-                `http://localhost:3000/api/setlastmsg/${fetchId}`,
+                `${url}/setlastmsg/${fetchId}`,
                 { },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
@@ -183,13 +196,13 @@ const ChatBox = ({ chatId }) => {
     const updatecount = async () => {
         try {
        const res=     await axios.put(
-                `http://localhost:3000/api/setcount/${fetchId}`,
+                `${url}/setcount/${fetchId}`,
                 { },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
             if (res.status==200) {
-                console.log("sucess");
-                
+                // console.log("sucess");
+                // scrollToBottom()
             }else{
                 error
             }
@@ -211,13 +224,17 @@ const ChatBox = ({ chatId }) => {
 
     const markMessagesAsSeen = async () => {
         try {
-            await axios.put(
-                `http://localhost:3000/api/setseen/${fetchId}`,
+       const res=     await axios.put(
+                `${url}/setseen/${fetchId}`,
                 {},
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
             );
+
+            if (res.status==200) {
+                // scrollToBottom()
+            }
         } catch (error) {
             setError("Error marking messages as seen.");
             console.error("Error marking messages as seen:", error);

@@ -4,7 +4,7 @@ import { FaEdit, FaSave } from "react-icons/fa";
 import Navbar from "./Nav";
 import "./Profile.scss";
 import logo from "../assets/logo.png";
-
+import url from "../assets/url";
 const Profile = () => {
     const [userData, setUserData] = useState({ image: "", username: "", about: "", email: "", phone: "" });
     const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +13,7 @@ const Profile = () => {
     const fetchUserData = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await axios.get("http://localhost:3000/api/navdata", {
+            const response = await axios.get(`${url}/navdata`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.status === 200) {
@@ -33,7 +33,7 @@ const Profile = () => {
             try {
                 const token = localStorage.getItem("token");
                 const res = await axios.put(
-                    "http://localhost:3000/api/editprofile",
+                    `${url}/editprofile`,
                     { ...userData },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );

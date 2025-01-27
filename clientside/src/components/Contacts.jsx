@@ -5,7 +5,7 @@ import "./Contacts.css"; // Import the CSS file
 import ChatBox from "./ChatBox"; // Import ChatBox component
 import { FaRegComments } from "react-icons/fa";
 import logo from "../assets/logo.png";
-
+import url from "../assets/url";
 const Contact = ({ serch }) => {
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null); // State to track the selected contact
@@ -15,7 +15,7 @@ const Contact = ({ serch }) => {
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/showcontacts", {
+        const response = await axios.get(`${url}/showcontacts`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setContacts(response.data.contacts);

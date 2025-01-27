@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Nav.css";
 import logo from "../assets/logo.png";
-
+import url from "../assets/url";
 const Navbar = ({ setSearch }) => {
   const navigate = useNavigate();
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -29,7 +29,7 @@ const Navbar = ({ setSearch }) => {
     }
 
     try {
-      const response = await axios.get("http://localhost:3000/api/navdata", {
+      const response = await axios.get(`${url}/navdata`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 

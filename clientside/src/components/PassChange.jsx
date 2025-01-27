@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import "./PassChange.scss"
 import { useNavigate } from 'react-router-dom';
+import url from '../assets/url';
 const PassChange = () => {
     const [email, setEmail] = useState('');
     const [pwd, setPwd] = useState('');
@@ -18,7 +19,7 @@ const PassChange = () => {
     const handlePassChange = async (e) => {
         e.preventDefault();
         try {
-         const res=   await axios.post('http://localhost:3000/api/passchange', {email, pwd, cpwd   });
+         const res=   await axios.post(`${url}/passchange`, {email, pwd, cpwd   });
             if (res.status==200) {
               Navigate("/login")  
             }else{

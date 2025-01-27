@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Verify.css';
-
+import url from '../assets/url';
 const EmailVerify = () => {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
@@ -10,7 +10,7 @@ const EmailVerify = () => {
     const handleSendEmail = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3000/api/verify', {
+            const response = await axios.post(`${url}/verify`, {
                 email
             });
             localStorage.setItem("email", email);

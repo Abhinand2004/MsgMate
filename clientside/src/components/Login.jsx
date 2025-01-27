@@ -4,7 +4,7 @@ import { TextField, Button } from "@mui/material";
 import "./Login.scss";
 import logo from "../assets/logo.png";
 import { useNavigate } from "react-router-dom";
-
+import url from "../assets/url";
 const Login = () => {
   const Navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/api/login", {
+      const res = await axios.post(`${url}/login`, {
         email,
         pass: password,
       });

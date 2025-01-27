@@ -3,14 +3,14 @@ import Navbar from "./Nav";
 import "./Profile.scss"; 
 import { useParams } from "react-router-dom";
 import logo from "../assets/logo.png";
-
+import url from "../assets/url";
 const Receiver = () => {
     const [receiverData, setReceiverData] = useState({ image: "", username: "", about: "", email: "", phone: "" });
     const { id } = useParams();
 
     const fetchReceiverData = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/reciver/${id}`);
+            const response = await fetch(`${url}/reciver/${id}`);
             if (response.ok) {
                 const data = await response.json();
                 setReceiverData(data);
