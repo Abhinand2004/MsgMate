@@ -39,7 +39,7 @@ const Login = () => {
           <h2 className="login-title">Welcome Back</h2>
           <TextField
             label="Email"
-            variant="outlined"
+            id="standard-basic"  variant="standard"
             fullWidth
             margin="normal"
             value={email}
@@ -49,7 +49,7 @@ const Login = () => {
           <TextField
             label="Password"
             type="password"
-            variant="outlined"
+            id="standard-basic"  variant="standard"
             fullWidth
             margin="normal"
             value={password}

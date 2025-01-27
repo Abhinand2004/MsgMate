@@ -16,14 +16,16 @@ const ChatList = ({ serch }) => {
 
   useEffect(() => {
     socket.current = io("http://localhost:3000", { transports: ["websocket"] });
- 
-
     socket.current.on("updatechatlist", () => {
       fetchChats(); 
     });
 
+   if (localStorage.getItem("token")) {
     fetchProfile();
     fetchChats();
+   }else{
+    navigate("/login")
+   }
 
     return () => {
       socket.current.disconnect();

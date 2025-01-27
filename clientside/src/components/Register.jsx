@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios'; 
-import './Register.css';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { TextField } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import url from '../assets/url';
+import './Register.css';
+
 const RegisterPage = () => {
-    const   Navigate=useNavigate()
+    const navigate = useNavigate();
     const [image, setImage] = useState(null);
     const [formData, setFormData] = useState({
         username: '',
@@ -43,95 +45,87 @@ const RegisterPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log(formData);
-
         try {
             const response = await axios.post(`${url}/register`, formData);
-            if (response.status==200) {
-                Navigate("/login")
-            }else{
-                alert("something went wrong")
-                
+            if (response.status === 200) {
+                navigate('/login');
+            } else {
+                alert('Something went wrong');
             }
         } catch (error) {
-            alert("something went wrong try again")
+            alert('Something went wrong, try again');
             console.error('There was an error registering the user!', error);
         }
     };
-    const loginnavigate=()=>{
-        Navigate("/login")
-    }
+
+    const loginnavigate = () => {
+        navigate('/login');
+    };
 
     return (
         <div className="register-container">
             <div className="register-card">
                 <h2 className="register-heading">Register</h2>
+                
                 <form className="register-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            name="username"
-                            id="username"
-                            className="form-input"
-                            placeholder="Enter username"
-                            value={formData.username}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
+                    <TextField
+                        fullWidth
+                        variant="standard"
+                        label="Username"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        required
+                        sx={{ marginBottom: 2 }}
+                    />
 
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="phone">Phone Number</label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            id="phone"
-                            className="form-input"
-                            placeholder="Enter phone number"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
+                    <TextField
+                        fullWidth
+                        variant="standard"
+                        label="Phone Number"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        sx={{ marginBottom: 2 }}
+                    />
 
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="pwd">Password</label>
-                        <input
-                            type="password"
-                            name="pwd"
-                            id="pwd"
-                            className="form-input"
-                            placeholder="Enter password"
-                            value={formData.pwd}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
+                    <TextField
+                        fullWidth
+                        variant="standard"
+                        label="Password"
+                        type="password"
+                        name="pwd"
+                        value={formData.pwd}
+                        onChange={handleInputChange}
+                        required
+                        sx={{ marginBottom: 2 }}
+                    />
 
-                    <div className="form-group">
-                        <label className="form-label" htmlFor="cpwd">Confirm Password</label>
-                        <input
-                            type="password"
-                            name="cpwd"
-                            id="cpwd"
-                            className="form-input"
-                            placeholder="Confirm password"
-                            value={formData.cpwd}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
+                    <TextField
+                        fullWidth
+                        variant="standard"
+                        label="Confirm Password"
+                        type="password"
+                        name="cpwd"
+                        value={formData.cpwd}
+                        onChange={handleInputChange}
+                        required
+                        sx={{ marginBottom: 2 }}
+                    />
 
                     <div className="form-group image-upload">
-                        <label className="form-label" htmlFor="image">Profile Image</label>
+                        <label htmlFor="image" className="image-upload-label">Profile Image</label>
                         <input
                             type="file"
                             id="image"
-                            className="form-input-file"
                             accept="image/*"
                             onChange={handleImageChange}
+                            style={{ display: 'none' }}
                         />
+                        <label htmlFor="image">
+                            <div className="image-upload-button">Upload Image</div>
+                        </label>
                         {image && <img src={image} alt="Selected" className="image-preview" />}
                     </div>
 
