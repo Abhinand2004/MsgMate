@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import { FaPaperPlane, FaEllipsisV } from "react-icons/fa";
+import { FaArrowDown } from "react-icons/fa";
 import io from "socket.io-client";
 import "./ChatBox.css";
 import url from "../assets/url";
@@ -15,48 +16,16 @@ const ChatBox = ({ chatId }) => {
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
     const socket = useRef(null);
-// console.log(user);
 
     const fetchId = id || chatId;
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 50);
+    };
 
+  
     
-
-    useEffect(() => {
-        socket.current = io("http://localhost:3000", { transports: ["websocket"] });
-    
-        // socket.current.on("connect", () => {
-        //     console.log("User connected with socket id:", socket.current.id);
-        // });
-    
-        socket.current.on("chat message", (msg) => {
-            if (msg.sender_id !== my_id) {
-                setMessages((prevMessages) => [...prevMessages, msg]);
-            }
-        });
-    
-        socket.current.on("disconnect", () => {
-            console.log("User disconnected");
-        });
-    
-        fetchMessages();
-    
-        return () => {
-            socket.current.disconnect();
-        };
-    }, [fetchId]); 
-    
-    
-
-    
-    useEffect(() => {
-       markMessagesAsSeen()
-    }, [messages]);
-    useEffect(() => {
-        fetchUserDetails();
-        scrollToBottom();
-    }, [socket]);
-
-
     const fetchMessages = async () => {
         try {
             const response = await axios.get(
@@ -70,14 +39,12 @@ const ChatBox = ({ chatId }) => {
                 updatecount()
                 setLoading(false);
                 fetchMessages()
-               
+                
             } else {
                 alert("Failed to fetch messages.");
             }
         } catch (error) {
-            setError("Error fetching messages. Please try again.");
             setLoading(false);
-            console.error("Error fetching messages:", error);
         }
     };
 
@@ -97,6 +64,7 @@ const ChatBox = ({ chatId }) => {
             if (response.status === 200) {
                 setUser(response.data.user);
                 setMyId(response.data.my_id);
+                scrollToBottom()
             } else {
                 
                 console.error("Failed to fetch user details", response.status);
@@ -177,16 +145,13 @@ const ChatBox = ({ chatId }) => {
 
     const updatelastmessage = async () => {
         try {
-       const res=     await axios.put(
-                `${url}/setlastmsg/${fetchId}`,
-                { },
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-            );
+       const res=await axios.put( `${url}/setlastmsg/${fetchId}`,{ },{ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }  );
             if (res.status==200) {
                 console.log("sucess");
                 
             }else{
-                error
+               console.log("error updatin");
+               
             }
         } catch (error) {
             console.error("Error updating unseen message count:", error);
@@ -195,16 +160,12 @@ const ChatBox = ({ chatId }) => {
     
     const updatecount = async () => {
         try {
-       const res=     await axios.put(
-                `${url}/setcount/${fetchId}`,
-                { },
-                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-            );
+       const res=     await axios.put(  `${url}/setcount/${fetchId}`,{ }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } } );
             if (res.status==200) {
                 // console.log("sucess");
                 // scrollToBottom()
             }else{
-                error
+                
             }
         } catch (error) {
             console.error("Error updating unseen message count:", error);
@@ -216,11 +177,7 @@ const ChatBox = ({ chatId }) => {
         setNewMessage(e.target.value);
     };
 
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-    };
+   
 
     const markMessagesAsSeen = async () => {
         try {
@@ -248,6 +205,47 @@ const ChatBox = ({ chatId }) => {
         const isAM = hours < 12;
         return `${hours % 12 || 12}:${minutes < 10 ? "0" : ""}${minutes} ${isAM ? "AM" : "PM"}`;
     };
+
+
+
+    useEffect(() => {
+        socket.current = io("http://localhost:3000", { transports: ["websocket"] });
+    
+        socket.current.on("connect", () => {
+            console.log("User connected with socket id:", socket.current.id);
+        });
+    
+        socket.current.on("chat message", (msg) => {
+            if (msg.sender_id !== my_id) {
+                setMessages((prevMessages) => [...prevMessages, msg]);
+            }
+        });
+    
+        socket.current.on("disconnect", () => {
+            console.log("User disconnected");
+        });
+    
+        fetchMessages();
+        return () => {
+            socket.current.disconnect();
+        };
+    }, [fetchId]); 
+    
+
+    useEffect(() => {
+        markMessagesAsSeen()
+     }, [messages]);
+     useEffect(() => {
+         fetchUserDetails(); 
+         scrollToBottom();
+     }, [socket.current]);
+ 
+     const godown=()=>{
+        scrollToBottom()
+     }
+     
+
+
 
     return (
         <div className="chat-box-fullscreen">
@@ -291,6 +289,7 @@ const ChatBox = ({ chatId }) => {
                     ))
                 )}
                 <div ref={messagesEndRef} />
+                <FaArrowDown size={24} color="green" className="arrow" onClick={godown}/>
             </div>
 
             <div className="message-box">
