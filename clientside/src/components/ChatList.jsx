@@ -18,6 +18,7 @@ const ChatList = ({ serch }) => {
     socket.current = io("http://localhost:3000", { transports: ["websocket"] });
     socket.current.on("updatechatlist", () => {
       fetchChats(); 
+      
     });
 
    if (localStorage.getItem("token")) {
@@ -46,7 +47,7 @@ const ChatList = ({ serch }) => {
       const response = await axios.get(`${url}/showchatlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      
       const formattedChats = response.data.map((chat) => ({
         ...chat,
         time: new Date(chat.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

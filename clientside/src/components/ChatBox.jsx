@@ -28,18 +28,16 @@ const ChatBox = ({ chatId }) => {
     
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(
-                `${url}/displaymsg/${fetchId}`,
+            const response = await axios.get(`${url}/displaymsg/${fetchId}`,
                 {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 }
             );
             if (response.status === 200) {
-                setMessages(response.data.messages);
                 updatecount()
                 setLoading(false);
                 fetchMessages()
-                
+                setMessages(response.data.messages);
             } else {
                 alert("Failed to fetch messages.");
             }
@@ -82,13 +80,7 @@ const ChatBox = ({ chatId }) => {
                 console.error("No token found");
                 return;
             }
-            const response = await axios.post(
-                `${url}/createchatlist/${fetchId}`,
-                {},
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
+            const response = await axios.post(  `${url}/createchatlist/${fetchId}`, {}, {  headers: { Authorization: `Bearer ${token}` },} );
             if (response.status === 200) {
                
                 console.log("Chat list initialized successfully.");
@@ -122,9 +114,10 @@ const ChatBox = ({ chatId }) => {
                 { message: messageContent },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
-
+            fetchMessages()
             setMessages((prevMessages) => [...prevMessages, message]);
             setNewMessage("");
+            updatecount()
             updatelastmessage()
             scrollToBottom();
 
@@ -139,7 +132,6 @@ const ChatBox = ({ chatId }) => {
         sendMessage(newMessage);
         updatecount()
         updatelastmessage();
-   
         scrollToBottom();
     };
 
@@ -148,7 +140,7 @@ const ChatBox = ({ chatId }) => {
        const res=await axios.put( `${url}/setlastmsg/${fetchId}`,{ },{ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }  );
             if (res.status==200) {
                 console.log("sucess");
-                
+                scrollToBottom()
             }else{
                console.log("error updatin");
                
@@ -160,7 +152,9 @@ const ChatBox = ({ chatId }) => {
     
     const updatecount = async () => {
         try {
-       const res=     await axios.put(  `${url}/setcount/${fetchId}`,{ }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } } );
+
+
+       const res=await axios.put(  `${url}/setcount/${fetchId}`,{ }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } } );
             if (res.status==200) {
                 // console.log("sucess");
                 // scrollToBottom()
@@ -182,11 +176,7 @@ const ChatBox = ({ chatId }) => {
     const markMessagesAsSeen = async () => {
         try {
        const res=     await axios.put(
-                `${url}/setseen/${fetchId}`,
-                {},
-                {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                }
+                `${url}/setseen/${fetchId}`, {}, {    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },}
             );
 
             if (res.status==200) {
@@ -214,7 +204,8 @@ const ChatBox = ({ chatId }) => {
         socket.current.on("connect", () => {
             console.log("User connected with socket id:", socket.current.id);
         });
-    
+
+
         socket.current.on("chat message", (msg) => {
             if (msg.sender_id !== my_id) {
                 setMessages((prevMessages) => [...prevMessages, msg]);
@@ -226,6 +217,11 @@ const ChatBox = ({ chatId }) => {
         });
     
         fetchMessages();
+        socket.current.on("disconnect", () => {
+            console.log("User disconnected");
+        });
+        fetchMessages();
+        scrollToBottom()
         return () => {
             socket.current.disconnect();
         };
@@ -244,6 +240,7 @@ const ChatBox = ({ chatId }) => {
         scrollToBottom()
      }
      
+
 
 
 

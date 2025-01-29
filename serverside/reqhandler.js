@@ -200,21 +200,31 @@ export async function showContacts(req, res) {
     }
 }
 
+import { encryptMessage } from "./Authentication/encryption.js";
 
 export async function message(req, res) {
     try {
         const { message } = req.body;
         const sender_id = req.user?.UserID;
         const { id } = req.params;
-        const time = new Date().toISOString(); 
+        const time = new Date().toISOString();
+
         if (!message || !sender_id || !id) {
-            return res.status(400).send({  msg: "Missing required fields" });
+            return res.status(400).send({ msg: "Missing required fields" });
         }
 
-        const data = await ChatBox.create({ message, sender_id, receiver_id: id, time });
+        // 🔒 Encrypt the message before saving
+        const encryptedMessage = encryptMessage(message);
+
+        const data = await ChatBox.create({ 
+            message: encryptedMessage, 
+            sender_id, 
+            receiver_id: id, 
+            time 
+        });
 
         if (data) {
-            return res.status(200).send({ msg:"success"});
+            return res.status(200).send({ msg: "Success" });
         } else {
             return res.status(500).send({ msg: "Failed to create message" });
         }
@@ -224,24 +234,37 @@ export async function message(req, res) {
 }
 
 
+
+import { decryptMessage } from "./Authentication/encryption.js";
+
 export async function displaymessage(req, res) {
     try {
-        const sender_id = req.user.UserID; 
-        const { id } = req.params;  
-        const messages = await ChatBox.find({ $or: [ { sender_id, receiver_id: id }, { sender_id: id, receiver_id: sender_id } ]
-        }).sort({ time: 1 }); 
-        // console.log(messages);
-        
-        if (!messages) {
+        const sender_id = req.user.UserID;
+        const { id } = req.params;
+
+        const messages = await ChatBox.find({
+            $or: [
+                { sender_id, receiver_id: id },
+                { sender_id: id, receiver_id: sender_id }
+            ]
+        }).sort({ time: 1 });
+
+        if (!messages || messages.length === 0) {
             return res.status(404).send({ msg: "No messages found" });
         }
 
-        return res.status(200).send({ messages });
+        const decryptedMessages = messages.map(msg => ({
+            ...msg._doc, 
+            message: decryptMessage(msg.message)
+        }));
+
+        return res.status(200).send({ messages: decryptedMessages });
     } catch (error) {
         console.error("Error fetching messages:", error);
         return res.status(500).send({ msg: "Failed to fetch messages", error });
     }
 }
+
 
 
 
@@ -387,8 +410,6 @@ export async function setlastmsg(req, res) {
     try {
         const sender_id = req.user.UserID;  
         const { id: receiver_id } = req.params; 
-
-        // Find the last message between the sender and receiver
         const lastMessage = await ChatBox.findOne(
             {
                 $or: [
@@ -397,17 +418,14 @@ export async function setlastmsg(req, res) {
                 ]
             },
             {}, 
-            { sort: { time: -1 } }  // Sorting by time to get the last message
+            { sort: { time: -1 } } 
         );
 
         if (!lastMessage) {
             return res.status(404).send({ msg: "No messages found between these users" });
         }
 // console.log(lastMessage);
-
-        // Get the sender of the last message
        
-        // Update the chatListSchema with the last message and sender
         const result = await chatListSchema.findOneAndUpdate(
             {
                 $or: [
@@ -419,10 +437,10 @@ export async function setlastmsg(req, res) {
                 $set: { 
                     lastmsg: lastMessage.message, 
                     time: lastMessage.time,
-                    lastSender: lastMessage.sender_id  // Include the sender of the last message
+                    lastSender: lastMessage.sender_id  
                 } 
             }, 
-            { new: true }  // Return the updated document
+            { new: true }  
         );
 
         if (!result) {
@@ -440,10 +458,8 @@ export async function setlastmsg(req, res) {
 
 export async function setcount(req, res) {
     try {
-        const sender_id = req.user.UserID;  // The ID of the logged-in user (my ID)
-        const { id: receiver_id } = req.params; // The other user's ID from URL params
-
-        // Fetch all messages between the two users where "seen" is false
+        const sender_id = req.user.UserID;  
+        const { id: receiver_id } = req.params; 
         const unseenMessages = await ChatBox.find(
             {
                 $or: [
@@ -452,14 +468,8 @@ export async function setcount(req, res) {
                 ]
             }
         );
-
-        // Count the number of unseen messages
         const unseenCount = unseenMessages.length;
-
-        // If all messages are seen, set count to 0
         const updatedCount = unseenCount === 0 ? 0 : unseenCount;
-
-        // Update the count in chatListSchema for the chat between these users
         const result = await chatListSchema.findOneAndUpdate(
             {
                 $or: [
@@ -467,8 +477,8 @@ export async function setcount(req, res) {
                     { sender_id: receiver_id, receiver_id: sender_id }
                 ]
             },
-            { $set: { count: updatedCount } }, // Set the count field to the unseen message count (or 0)
-            { new: true } // Return the updated document
+            { $set: { count: updatedCount } }, 
+            { new: true } 
         );
 
         if (!result) {
@@ -490,32 +500,35 @@ export async function setcount(req, res) {
 export async function displayChatList(req, res) {
     try {
         const userId = req.user.UserID;
-        const chatLists = await chatListSchema.find({ $or: [{ sender_id: userId },{ receiver_id: userId }  ]  });
+        const chatLists = await chatListSchema.find({ $or: [{ sender_id: userId }, { receiver_id: userId }] });
 
         const chatListData = chatLists.map(chat => {
+            // Decrypt the lastmsg field before returning it
+            const decryptedLastMsg = decryptMessage(chat.lastmsg);
+
             if (chat.sender_id === userId) {
                 return {
                     username: chat.receiver.username,
                     image: chat.receiver.image,
                     chatId: chat._id,
-                    otherUserId: chat.receiver_id ,
-                    lastmsg:chat.lastmsg,
-                    time:chat.time,
-                    count:chat.count,
-                    lastSender:chat.lastSender,
-                    my_id:req.user.UserID
+                    otherUserId: chat.receiver_id,
+                    lastmsg: decryptedLastMsg,  // Decrypted message
+                    time: chat.time,
+                    count: chat.count,
+                    lastSender: chat.lastSender,
+                    my_id: req.user.UserID
                 };
             } else {
                 return {
                     username: chat.sender.username,
                     image: chat.sender.image,
                     chatId: chat._id,
-                    otherUserId: chat.sender_id ,
-                    lastmsg:chat.lastmsg,
-                    time:chat.time,
-                    count:chat.count,
-                    lastSender:chat. lastSender,
-                    my_id:req.user.UserID
+                    otherUserId: chat.sender_id,
+                    lastmsg: decryptedLastMsg,  // Decrypted message
+                    time: chat.time,
+                    count: chat.count,
+                    lastSender: chat.lastSender,
+                    my_id: req.user.UserID
                 };
             }
         });

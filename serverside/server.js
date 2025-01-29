@@ -22,7 +22,7 @@ app.use(express.json({ limit: "50mb" }));
 app.use('/api', Router);
 
 io.on("connection", (socket) => {
-    console.log("a user connected");
+    // console.log("a user connected");
 
     socket.on("chat message", (msg) => {
         io.emit("chat message", msg);
@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("user disconnected");
+        // console.log("user disconnected");
     });
 });
 
