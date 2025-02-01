@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios'; 
 import { TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,8 @@ const RegisterPage = () => {
         email: localStorage.getItem('email'),
         image: ''
     });
+
+    console.log(formData.email);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -42,13 +44,42 @@ const RegisterPage = () => {
         }
     };
 
+    const validatePhoneNumber = (phone) => {
+        const regex = /^[0-9]{10}$/; // Validates exactly 10 digits
+        return regex.test(phone);
+    };
+
+    const validatePassword = (password) => {
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+        return regex.test(password);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validate phone number
+        if (!validatePhoneNumber(formData.phone)) {
+            alert("Phone number must contain exactly 10 digits.");
+            return;
+        }
+
+        // Validate password
+        if (!validatePassword(formData.pwd)) {
+            alert("Password must contain at least one uppercase letter, one lowercase letter, one symbol, one number, and be at least 8 characters long.");
+            return;
+        }
+
+        // Validate confirm password
+        if (formData.pwd !== formData.cpwd) {
+            alert("Passwords do not match.");
+            return;
+        }
 
         try {
             const response = await axios.post(`${url}/register`, formData);
             if (response.status === 200) {
                 navigate('/login');
+                localStorage.removeItem("email");
             } else {
                 alert('Something went wrong');
             }
@@ -61,6 +92,13 @@ const RegisterPage = () => {
     const loginnavigate = () => {
         navigate('/login');
     };
+
+    useEffect(() => {
+        const emailss = localStorage.getItem("email");
+        if (!emailss) {
+            navigate("/verify");
+        }
+    }, []);
 
     return (
         <div className="register-container">

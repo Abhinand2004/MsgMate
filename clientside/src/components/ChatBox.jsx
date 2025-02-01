@@ -36,8 +36,8 @@ const ChatBox = ({ chatId }) => {
             if (response.status === 200) {
                 updatecount()
                 setLoading(false);
-                fetchMessages()
                 setMessages(response.data.messages);
+                fetchMessages()
             } else {
                 alert("Failed to fetch messages.");
             }
@@ -115,10 +115,10 @@ const ChatBox = ({ chatId }) => {
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
             fetchMessages()
-            setMessages((prevMessages) => [...prevMessages, message]);
-            setNewMessage("");
             updatecount()
             updatelastmessage()
+            setMessages((prevMessages) => [...prevMessages, message]);
+            setNewMessage("");
             scrollToBottom();
 
             socket.current.emit("chat message", message);

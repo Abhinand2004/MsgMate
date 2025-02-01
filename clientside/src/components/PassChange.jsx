@@ -22,6 +22,7 @@ const PassChange = () => {
          const res=   await axios.post(`${url}/passchange`, {email, pwd, cpwd   });
             if (res.status==200) {
               Navigate("/login")  
+              localStorage.removeItem("email")
             }else{
                 alert("something went wrong")
             }

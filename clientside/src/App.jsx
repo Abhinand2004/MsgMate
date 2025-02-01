@@ -15,7 +15,6 @@ import { useState } from 'react';
 
 function App() {
   const [serch, setSerch] = useState("");
-
   return (
     <BrowserRouter>
       <AppWithNavbar setSerch={setSerch} serch={serch} />
