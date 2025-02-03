@@ -82,7 +82,8 @@ const ChatBox = ({ chatId }) => {
             }
             const response = await axios.post(  `${url}/createchatlist/${fetchId}`, {}, {  headers: { Authorization: `Bearer ${token}` },} );
             if (response.status === 200) {
-               
+                socket.current.emit("chat message", message);
+
                 console.log("Chat list initialized successfully.");
             }
         } catch (error) {
