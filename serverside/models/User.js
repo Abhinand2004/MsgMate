@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     pass: { type: String },
     phone:{type:Number},
     image:{type:String},
-    about:{type:String}
+    about:{type:String},
+    googleId: { type: String },
 
 });
 

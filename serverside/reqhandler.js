@@ -538,3 +538,60 @@ export async function displayChatList(req, res) {
         return res.status(500).send({ msg: "Internal server error." });
     }
 }
+
+
+
+
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
+
+const client = new OAuth2Client("105958806746-rioiiafbpp4uo7a0vtjomi239j9pb9kk.apps.googleusercontent.com");
+export async function getgoogleresponser(req, res) {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).send({ error: "No token provided" });
+        }
+
+        // Verify the Google ID token
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: "105958806746-rioiiafbpp4uo7a0vtjomi239j9pb9kk.apps.googleusercontent.com",
+        });
+
+        const payload = ticket.getPayload();
+        const { sub, email, name, picture } = payload;
+
+        // Check if the user already exists in the database
+        let user = await userSchema.findOne({ email });
+
+        if (!user) {
+            // Create a new user if they don’t exist
+            user = new userSchema({
+                username: name,
+                email: email,
+                image: picture,
+                googleId: sub,
+                phone: null,   
+                about: null, // Store Google user ID
+            });
+
+            await user.save();
+        }
+
+        // Create a token with only the UserID in the payload
+        const authToken = jwt.sign(
+            { UserID: user._id },  // Only UserID is included
+            process.env.JWT_KEY, 
+            { expiresIn: "24h" }
+        );
+        
+        console.log(authToken);
+        
+        res.status(200).send({ authToken });
+    } catch (error) {
+        console.error("Google Authentication Error:", error);
+        res.status(500).send({ error: "Failed to authenticate with Google" });
+    }
+}

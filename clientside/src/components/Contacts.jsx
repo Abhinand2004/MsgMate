@@ -6,7 +6,8 @@ import ChatBox from "./ChatBox"; // Import ChatBox component
 import { FaRegComments } from "react-icons/fa";
 import logo from "../assets/logo.png";
 import url from "../assets/url";
-const Contact = ({ serch }) => {
+
+const Contact = ({ search }) => {
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null); // State to track the selected contact
   const [screenWidth, setScreenWidth] = useState(window.innerWidth); // Track the screen width for responsive layout
@@ -27,13 +28,16 @@ const Contact = ({ serch }) => {
     fetchContacts(); 
   }, []); 
 
+  // Ensure serch is always a string and handle undefined search terms
+  const searchValue = search ? search.toLowerCase() : "";
+
   const filteredContacts = contacts.filter((contact) => {
     const username = contact.username || ""; 
     const about = contact.about || ""; 
 
     return (
-      username.toLowerCase().includes(serch.toLowerCase()) ||
-      about.toLowerCase().includes(serch.toLowerCase())
+      username.toLowerCase().includes(searchValue) ||
+      about.toLowerCase().includes(searchValue)
     );
   });
 
@@ -75,7 +79,6 @@ const Contact = ({ serch }) => {
             <p>No contacts found</p>
           )}
         </div>
-        
       </div>
 
       {screenWidth > 760 && (

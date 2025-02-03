@@ -1,6 +1,9 @@
 import { Router } from "express";
-import Auth from "./Authentication/Auth.js";
-import * as rh from './reqhandler.js';
+import Auth from "./Authentication/Auth.js";  // Your Auth middleware
+import * as rh from './reqhandler.js';  // Request handlers
+import passport from "passport";
+import jwt from "jsonwebtoken";  // Make sure jwt is imported
+
 const router = Router();
 
 router.route("/register").post(rh.register);
@@ -19,6 +22,9 @@ router.route("/createchatlist/:id").post(Auth, rh.createChatList);
 router.route("/showchatlist").get(Auth, rh.displayChatList);
 router.route("/reciver/:id").get(rh.reciverdetails);
 router.route("/setlastmsg/:id").put(Auth, rh.setlastmsg);
-router.route("/setcount/:id").put(Auth,rh.setcount)
+router.route("/setcount/:id").put(Auth, rh.setcount);
+
+// ✅ Added Google OAuth route
+router.route("/auth/google").post(rh.getgoogleresponser);
 
 export default router;

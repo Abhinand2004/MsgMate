@@ -7,7 +7,9 @@ import ChatBox from "./ChatBox";
 import logo from "../assets/logo.png";
 import io from "socket.io-client"; 
 import url from "../assets/url";
-const ChatList = ({ serch }) => {
+const ChatList = ({ search }) => {
+  console.log(search);
+  
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -107,7 +109,7 @@ const ChatList = ({ serch }) => {
           ) : (
             chats
               .filter((chat) => {
-                const searchValue = serch?.toLowerCase() || "";
+                const searchValue = search?.toLowerCase() || "";
                 return chat.username?.toLowerCase().includes(searchValue);
               })
               .map((chat) => (
