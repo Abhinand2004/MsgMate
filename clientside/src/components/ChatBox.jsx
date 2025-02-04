@@ -4,9 +4,11 @@ import { Link, useParams } from "react-router-dom";
 import { FaPaperPlane, FaEllipsisV } from "react-icons/fa";
 import { FaArrowDown } from "react-icons/fa";
 import io from "socket.io-client";
+import Picker from "emoji-picker-react"; // Make sure to use the correct import
 import "./ChatBox.css";
 import url from "../assets/url";
 import Receiver from "./Reciver";
+
 const ChatBox = ({ chatId }) => {
     const { id } = useParams();
     const [messages, setMessages] = useState([]);
@@ -17,6 +19,8 @@ const ChatBox = ({ chatId }) => {
     const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
     const socket = useRef(null);
+    const [isOnline, setIsOnline] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // State for controlling emoji picker visibility
 
     const fetchId = id || chatId;
     const scrollToBottom = () => {
@@ -25,20 +29,16 @@ const ChatBox = ({ chatId }) => {
         }, 50);
     };
 
-  
-    
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(`${url}/displaymsg/${fetchId}`,
-                {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-                }
-            );
+            const response = await axios.get(`${url}/displaymsg/${fetchId}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
             if (response.status === 200) {
-                updatecount()
+                updatecount();
                 setLoading(false);
                 setMessages(response.data.messages);
-                fetchMessages()
+                fetchMessages();
             } else {
                 alert("Failed to fetch messages.");
             }
@@ -63,9 +63,8 @@ const ChatBox = ({ chatId }) => {
             if (response.status === 200) {
                 setUser(response.data.user);
                 setMyId(response.data.my_id);
-                scrollToBottom()
+                scrollToBottom();
             } else {
-                
                 console.error("Failed to fetch user details", response.status);
             }
         } catch (error) {
@@ -81,7 +80,11 @@ const ChatBox = ({ chatId }) => {
                 console.error("No token found");
                 return;
             }
-            const response = await axios.post(  `${url}/createchatlist/${fetchId}`, {}, {  headers: { Authorization: `Bearer ${token}` },} );
+            const response = await axios.post(
+                `${url}/createchatlist/${fetchId}`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             if (response.status === 200) {
                 socket.current.emit("chat message", message);
 
@@ -100,7 +103,7 @@ const ChatBox = ({ chatId }) => {
         if (messageContent.trim() === "" || my_id === null) return;
 
         const message = {
-            receiver_id:fetchId,
+            receiver_id: fetchId,
             sender_id: my_id,
             message: messageContent,
             time: new Date().toISOString(),
@@ -117,12 +120,13 @@ const ChatBox = ({ chatId }) => {
                 { message: messageContent },
                 { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
-            fetchMessages()
-            updatecount()
-            updatelastmessage()
+            fetchMessages();
+            updatecount();
+            updatelastmessage();
             setMessages((prevMessages) => [...prevMessages, message]);
             setNewMessage("");
             scrollToBottom();
+            setShowEmojiPicker(false); // Hide emoji picker after sending a message
 
             socket.current.emit("chat message", message);
         } catch (error) {
@@ -133,56 +137,63 @@ const ChatBox = ({ chatId }) => {
 
     const handleSend = () => {
         sendMessage(newMessage);
-        updatecount()
+        updatecount();
         updatelastmessage();
         scrollToBottom();
     };
 
     const updatelastmessage = async () => {
         try {
-       const res=await axios.put( `${url}/setlastmsg/${fetchId}`,{ },{ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }  );
-            if (res.status==200) {
+            const res = await axios.put(
+                `${url}/setlastmsg/${fetchId}`,
+                {},
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+            if (res.status === 200) {
                 console.log("sucess");
-                scrollToBottom()
-            }else{
-               console.log("error updatin");
-               
+                scrollToBottom();
+            } else {
+                console.log("error updating");
             }
         } catch (error) {
             console.error("Error updating unseen message count:", error);
         }
     };
-    
+
     const updatecount = async () => {
         try {
-
-
-       const res=await axios.put(  `${url}/setcount/${fetchId}`,{ }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } } );
-            if (res.status==200) {
+            const res = await axios.put(
+                `${url}/setcount/${fetchId}`,
+                {},
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+            );
+            if (res.status === 200) {
                 // console.log("sucess");
                 // scrollToBottom()
-            }else{
-                
+            } else {
+                // handle failure
             }
         } catch (error) {
             console.error("Error updating unseen message count:", error);
         }
     };
-    
 
     const handleChange = (e) => {
         setNewMessage(e.target.value);
     };
 
-   
+    const handleEmojiClick = (emoji) => {
+        setNewMessage((prevMessage) => prevMessage + emoji.emoji); // Add emoji to the message
+    };
 
     const markMessagesAsSeen = async () => {
         try {
-       const res=     await axios.put(
-                `${url}/setseen/${fetchId}`, {}, {    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },}
+            const res = await axios.put(
+                `${url}/setseen/${fetchId}`, {},
+                { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
             );
 
-            if (res.status==200) {
+            if (res.status === 200) {
                 // scrollToBottom()
             }
         } catch (error) {
@@ -199,54 +210,58 @@ const ChatBox = ({ chatId }) => {
         return `${hours % 12 || 12}:${minutes < 10 ? "0" : ""}${minutes} ${isAM ? "AM" : "PM"}`;
     };
 
-
-
     useEffect(() => {
         socket.current = io("http://localhost:3000", { transports: ["websocket"] });
-    
+
         socket.current.on("connect", () => {
             console.log("User connected with socket id:", socket.current.id);
-        });
-
-
-        socket.current.on("chat message", (msg) => {
-            scrollToBottom()
-            if (msg.sender_id !== my_id) {
-                setMessages((prevMessages) => [...prevMessages, msg]);
+            if (my_id) {
+                socket.current.emit("user-online", my_id);
             }
         });
-    
+
+        socket.current.on("chat message", (msg) => {
+            if (msg.sender_id !== my_id) {
+                setMessages((prevMessages) => [...prevMessages, msg]);
+                scrollToBottom();
+            }
+        });
+
+        socket.current.on("update-online-status", (onlineUsers) => {
+            setIsOnline(onlineUsers.includes(fetchId));
+        });
+
         socket.current.on("disconnect", () => {
             console.log("User disconnected");
+            if (my_id) {
+                socket.current.emit("user-offline", my_id);
+            }
         });
-    
+
         fetchMessages();
-        socket.current.on("disconnect", () => {
-            console.log("User disconnected");
-        });
-        fetchMessages();
-        scrollToBottom()
+        fetchUserDetails();
+        scrollToBottom();
+
         return () => {
+            if (my_id) {
+                socket.current.emit("user-offline", my_id);
+            }
             socket.current.disconnect();
         };
-    }, [fetchId]); 
-    
+    }, [fetchId, my_id]);
 
     useEffect(() => {
-        markMessagesAsSeen()
-     }, [messages]);
-     useEffect(() => {
-         fetchUserDetails(); 
-         scrollToBottom();
-     }, [socket.current]);
- 
-     const godown=()=>{
-        scrollToBottom()
-     }
-     
+        markMessagesAsSeen();
+    }, [messages]);
 
+    useEffect(() => {
+        fetchUserDetails();
+        scrollToBottom();
+    }, [socket.current]);
 
-
+    const godown = () => {
+        scrollToBottom();
+    };
 
     return (
         <div className="chat-box-fullscreen">
@@ -255,6 +270,7 @@ const ChatBox = ({ chatId }) => {
                     <div className="chat-user-info">
                         <img src={user.image} alt={user.username} className="chat-user-photo" />
                         <span className="chat-username">{user.username}</span>
+                        {isOnline && <span className="online-indicator">💚</span>}
                     </div>
                     <FaEllipsisV className="dropdown-icon" />
                 </div>
@@ -290,24 +306,34 @@ const ChatBox = ({ chatId }) => {
                     ))
                 )}
                 <div ref={messagesEndRef} />
-                <FaArrowDown size={24} color="green" className="arrow" onClick={godown}/>
+
+                <FaArrowDown size={24} color="green" className="arrow" onClick={godown} />
             </div>
 
             <div className="message-box">
-                <input
-                    type="text"
-                    value={newMessage}
-                    onChange={handleChange}
-                    placeholder="Type a message..."
-                    className="message-input"
-                />
-                <button onClick={handleSend} className="send-btn">
-                    <FaPaperPlane />
-                </button>
+                <div className="message-input-container">
+                    <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="emoji-btn">
+                        😊
+                    </button>
+                    <input
+                        type="text"
+                        value={newMessage}
+                        onChange={handleChange}
+                        placeholder="Type a message..."
+                        className="message-input"
+                    />
+                    <button onClick={handleSend} className="send-btn">
+                        <FaPaperPlane />
+                    </button>
+                </div>
+                {showEmojiPicker && (
+                    <div className="emoji-picker emoji-picker-container">
+                             <Picker onEmojiClick={handleEmojiClick}  width={"100%"}/>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
 export default ChatBox;
-    

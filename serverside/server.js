@@ -27,29 +27,50 @@ app.use(passport.initialize());
 
 app.use("/api", Router); 
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// Store online users
+const onlineUsers = new Map(); // userId -> socketId mapping
 
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  // When a user joins, store their ID
+  socket.on("user-online", (userId) => {
+    onlineUsers.set(userId, socket.id);
+    io.emit("update-online-status", Array.from(onlineUsers.keys())); // Send online users list
+    console.log(`User ${userId} is online`);
+  });
+
+  // When a user goes offline
+  socket.on("user-offline", (userId) => {
+    onlineUsers.delete(userId);
+    io.emit("update-online-status", Array.from(onlineUsers.keys())); // Notify all clients
+    console.log(`User ${userId} is offline`);
+  });
+
+  // Handling chat messages
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
     io.emit("updatechatlist", msg);
     io.emit("createnotification", msg);
-    // console.log(msg);
-    
-
   });
 
+  // Handling user disconnect
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    let userId = [...onlineUsers.entries()].find(([_, id]) => id === socket.id)?.[0];
+    if (userId) {
+      onlineUsers.delete(userId);
+      io.emit("update-online-status", Array.from(onlineUsers.keys())); // Notify all users
+      console.log(`User ${userId} disconnected`);
+    }
   });
 });
 
 connection()
   .then(() => {
     httpServer.listen(process.env.PORT || 3000, () => {
-      console.log(` Server started at http://localhost:${process.env.PORT || 3000}`);
+      console.log(`Server started at http://localhost:${process.env.PORT || 3000}`);
     });
   })
   .catch((error) => {
-    console.error(" Database connection failed:", error);
+    console.error("Database connection failed:", error);
   });
