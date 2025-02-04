@@ -5,9 +5,9 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import passport from "passport";
-import "./passport.js"; // Ensure Passport strategy is loaded
-import authRoutes from "./Authentication/Auth.js"; // Google auth routes
-import Router from "./router.js"; // API routes
+import "./passport.js"; 
+import authRoutes from "./Authentication/Auth.js"; 
+import Router from "./router.js"; 
 
 dotenv.config();
 
@@ -15,28 +15,28 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // Update with frontend URL in production
+    origin: "http://localhost:5173", 
     methods: ["GET", "POST"],
     credentials: true,
   }
 });
 
-// 🔹 Middleware
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json({ limit: "50mb" }));
-app.use(passport.initialize()); // Initialize Passport
+app.use(passport.initialize()); 
 
-// 🔹 Routes
-app.use("/auth", authRoutes); // Google OAuth & JWT authentication routes
-app.use("/api", Router); // API routes
+app.use("/api", Router); 
 
-// 🔹 Socket.IO Setup
 io.on("connection", (socket) => {
   console.log("A user connected");
 
   socket.on("chat message", (msg) => {
     io.emit("chat message", msg);
     io.emit("updatechatlist", msg);
+    io.emit("createnotification", msg);
+    // console.log(msg);
+    
+
   });
 
   socket.on("disconnect", () => {
@@ -44,13 +44,12 @@ io.on("connection", (socket) => {
   });
 });
 
-// 🔹 Start Server
 connection()
   .then(() => {
     httpServer.listen(process.env.PORT || 3000, () => {
-      console.log(`✅ Server started at http://localhost:${process.env.PORT || 3000}`);
+      console.log(` Server started at http://localhost:${process.env.PORT || 3000}`);
     });
   })
   .catch((error) => {
-    console.error("❌ Database connection failed:", error);
+    console.error(" Database connection failed:", error);
   });

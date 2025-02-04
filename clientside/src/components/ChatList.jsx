@@ -49,11 +49,13 @@ const ChatList = ({ search }) => {
       const response = await axios.get(`${url}/showchatlist`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log(response);
       
       const formattedChats = response.data.map((chat) => ({
         ...chat,
         time: new Date(chat.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }));
+      
       setChats(formattedChats);
     } catch (error) {
       console.error("Error fetching chat list:", error);

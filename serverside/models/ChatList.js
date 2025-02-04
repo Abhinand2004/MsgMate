@@ -4,8 +4,6 @@ import { type } from "os";
 const chatListSchema = new mongoose.Schema({
     sender_id: { type: String, required: true },
     receiver_id: { type: String, required: true },
-    sender:{type:Object},
-    receiver:{type:Object},
     lastmsg:{type:String},
     time: { type: Date},
     count:{type:Number},

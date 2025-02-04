@@ -6,6 +6,7 @@ import { FaArrowDown } from "react-icons/fa";
 import io from "socket.io-client";
 import "./ChatBox.css";
 import url from "../assets/url";
+import Receiver from "./Reciver";
 const ChatBox = ({ chatId }) => {
     const { id } = useParams();
     const [messages, setMessages] = useState([]);
@@ -99,6 +100,7 @@ const ChatBox = ({ chatId }) => {
         if (messageContent.trim() === "" || my_id === null) return;
 
         const message = {
+            receiver_id:fetchId,
             sender_id: my_id,
             message: messageContent,
             time: new Date().toISOString(),
@@ -208,6 +210,7 @@ const ChatBox = ({ chatId }) => {
 
 
         socket.current.on("chat message", (msg) => {
+            scrollToBottom()
             if (msg.sender_id !== my_id) {
                 setMessages((prevMessages) => [...prevMessages, msg]);
             }

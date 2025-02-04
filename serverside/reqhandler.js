@@ -7,7 +7,9 @@ import nodemailer from 'nodemailer';
 import ChatBox from "./models/ChatBox.js";
 import chatListSchema from './models/ChatList.js';  
 const app = express();
-
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
+const client = new OAuth2Client("105958806746-rioiiafbpp4uo7a0vtjomi239j9pb9kk.apps.googleusercontent.com");
 
 
 
@@ -380,19 +382,9 @@ export async function createChatList(req, res) {
         if (existingChatList) {
             return res.status(400).send({ msg: "Chat list already exists between these users." });
         }
-
-        const sender = await userSchema.findOne({ _id: sender_id });
-        const receiver = await userSchema.findOne({ _id: receiver_id });
-
-        if (!sender || !receiver) {
-            return res.status(404).send({ msg: "Sender or receiver not found." });
-        }
-
         const chatList = await chatListSchema.create({
             sender_id,
             receiver_id,
-            sender: { username: sender.username, image: sender.image },
-            receiver: { username: receiver.username, image: receiver.image },
             lastmsg:null,
             time:null,
             count:0,
@@ -500,41 +492,44 @@ export async function setcount(req, res) {
 export async function displayChatList(req, res) {
     try {
         const userId = req.user.UserID;
-        const chatLists = await chatListSchema.find({ $or: [{ sender_id: userId }, { receiver_id: userId }] });
 
-        const chatListData = chatLists.map(chat => {
-            // Decrypt the lastmsg field before returning it
-            const decryptedLastMsg = decryptMessage(chat.lastmsg);
+        const chatLists = await chatListSchema.find({
+            $or: [{ sender_id: userId }, { receiver_id: userId }]
+        });
+
+        const chatListData = await Promise.all(chatLists.map(async (chat) => {
+            const decryptedLastMsg = decryptMessage(chat.lastmsg); 
+
+            let otherUser; 
 
             if (chat.sender_id === userId) {
+                otherUser = await userSchema.findById(chat.receiver_id);
+            } else {
+                otherUser = await userSchema.findById(chat.sender_id);
+            }
+
+            if (otherUser) {
                 return {
-                    username: chat.receiver.username,
-                    image: chat.receiver.image,
+                    username: otherUser.username,
+                    image: otherUser.image,
                     chatId: chat._id,
-                    otherUserId: chat.receiver_id,
-                    lastmsg: decryptedLastMsg,  // Decrypted message
+                    otherUserId: otherUser._id,
+                    lastmsg: decryptedLastMsg, 
                     time: chat.time,
                     count: chat.count,
                     lastSender: chat.lastSender,
                     my_id: req.user.UserID
                 };
             } else {
-                return {
-                    username: chat.sender.username,
-                    image: chat.sender.image,
-                    chatId: chat._id,
-                    otherUserId: chat.sender_id,
-                    lastmsg: decryptedLastMsg,  // Decrypted message
-                    time: chat.time,
-                    count: chat.count,
-                    lastSender: chat.lastSender,
-                    my_id: req.user.UserID
-                };
+                return null; 
             }
-        });
+        }));
 
-        return res.status(200).send(chatListData);
+        const validChatListData = chatListData.filter(chat => chat !== null);
+
+        return res.status(200).send(validChatListData);
     } catch (error) {
+        console.error(error);
         return res.status(500).send({ msg: "Internal server error." });
     }
 }
@@ -542,10 +537,7 @@ export async function displayChatList(req, res) {
 
 
 
-import { OAuth2Client } from "google-auth-library";
-import jwt from "jsonwebtoken";
 
-const client = new OAuth2Client("105958806746-rioiiafbpp4uo7a0vtjomi239j9pb9kk.apps.googleusercontent.com");
 export async function getgoogleresponser(req, res) {
     try {
         const { token } = req.body;
@@ -563,32 +555,23 @@ export async function getgoogleresponser(req, res) {
         const payload = ticket.getPayload();
         const { sub, email, name, picture } = payload;
 
-        // Check if the user already exists in the database
         let user = await userSchema.findOne({ email });
 
         if (!user) {
-            // Create a new user if they don’t exist
             user = new userSchema({
                 username: name,
                 email: email,
                 image: picture,
                 googleId: sub,
                 phone: null,   
-                about: null, // Store Google user ID
+                about: null, 
             });
 
             await user.save();
         }
 
-        // Create a token with only the UserID in the payload
-        const authToken = jwt.sign(
-            { UserID: user._id },  // Only UserID is included
-            process.env.JWT_KEY, 
-            { expiresIn: "24h" }
-        );
-        
-        console.log(authToken);
-        
+        const authToken = jwt.sign( { UserID: user._id },  process.env.JWT_KEY,   { expiresIn: "24h" }  );
+        // console.log(authToken);
         res.status(200).send({ authToken });
     } catch (error) {
         console.error("Google Authentication Error:", error);
